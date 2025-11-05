@@ -5,6 +5,7 @@ import { useAppContext } from '../contexts/AppContext';
 import StatusBar from '../components/StatusBar';
 import Button from '../components/Button';
 import NotificationBell from '../components/NotificationBell';
+import DocumentPreview from '../components/DocumentPreview';
 import { auth } from '../services/firebase';
 import { signOut } from 'firebase/auth';
 
@@ -19,27 +20,6 @@ const InfoRow: React.FC<{ label: string, value?: string, children?: React.ReactN
         </div>
     );
 }
-
-const DocRow: React.FC<{ label: string, url?: string }> = ({ label, url }) => {
-    const fileName = url ? decodeURIComponent(url.split('/').pop()?.split('?')[0] || '').split('-').slice(1).join('-') : 'Not provided';
-    return (
-    <div className="py-3 border-b border-sky-800">
-        <p className="text-sm font-medium text-slate-400 mb-2">{label}</p>
-        <div className="flex items-center justify-between text-sm">
-            <p className="text-white truncate">{fileName}</p>
-            {url ? (
-                 <a href={url} target="_blank" rel="noopener noreferrer" className="ml-4 px-2.5 py-0.5 rounded-full text-xs font-medium bg-cyan-900/50 text-cyan-300 border border-cyan-700/50 hover:bg-cyan-800/50">
-                    View
-                </a>
-            ) : (
-                 <div className="ml-4 px-2.5 py-0.5 rounded-full text-xs font-medium bg-slate-700 text-slate-400 border border-slate-600">
-                    N/A
-                </div>
-            )}
-        </div>
-    </div>
-)};
-
 
 const Status = () => {
   const { application, setIsAuthenticated } = useAppContext();
@@ -108,9 +88,10 @@ const Status = () => {
                             <InfoRow label="Vehicle Reg" value={application.vehicleReg} />
                              <InfoRow label="Insurance Expiry" value={application.insuranceExpiry} />
                             <div className="h-px bg-sky-800 my-4"></div>
-                            <DocRow label="Badge Document" url={application.documents.badgeDocumentUrl} />
-                            <DocRow label="License Document" url={application.documents.drivingLicenseDocumentUrl} />
-                            <DocRow label="Insurance Document" url={application.documents.insuranceDocumentUrl} />
+                            <h3 className="text-sm font-semibold text-white mb-3 mt-6">Uploaded Documents</h3>
+                            <DocumentPreview label="Badge Document" url={application.documents.badgeDocumentUrl} />
+                            <DocumentPreview label="Driving License" url={application.documents.drivingLicenseDocumentUrl} />
+                            <DocumentPreview label="Insurance Certificate" url={application.documents.insuranceDocumentUrl} />
                         </>}
                     </dl>
 
