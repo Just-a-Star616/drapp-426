@@ -73,14 +73,16 @@ const Apply: React.FC = () => {
   const passwordValidation = usePasswordValidation(formData.password);
 
   const debounceTimeoutRef = useRef<number | null>(null);
+  const hasLoadedInitialData = useRef(false);
 
-  // Pre-fill form if a partial application exists
+  // Pre-fill form if a partial application exists (only once on mount)
   useEffect(() => {
-    if (application) {
+    if (application && !hasLoadedInitialData.current) {
         setFormData(prev => ({
             ...prev,
             ...application
         }));
+        hasLoadedInitialData.current = true;
     }
   }, [application]);
 
