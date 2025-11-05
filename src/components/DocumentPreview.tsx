@@ -12,9 +12,10 @@ const DocumentPreview: React.FC<DocumentPreviewProps> = ({ label, url }) => {
     ? decodeURIComponent(url.split('/').pop()?.split('?')[0] || '').split('-').slice(1).join('-')
     : 'Not provided';
 
-  // Determine file type from URL
-  const isImage = hasDocument && /\.(jpg|jpeg|png|gif|webp)$/i.test(url);
-  const isPDF = hasDocument && /\.pdf$/i.test(url);
+  // Determine file type from URL (remove query params first)
+  const urlWithoutParams = hasDocument ? url.split('?')[0] : '';
+  const isImage = hasDocument && /\.(jpg|jpeg|png|gif|webp)$/i.test(urlWithoutParams);
+  const isPDF = hasDocument && /\.pdf$/i.test(urlWithoutParams);
 
   return (
     <>
