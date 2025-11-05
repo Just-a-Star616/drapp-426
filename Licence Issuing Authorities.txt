@@ -1,0 +1,359 @@
+Aberdeen City	 
+Aberdeenshire Council
+Adur District Council 
+Amber Valley Borough Council
+Angus
+Argyll & Bute
+Arun District Council
+Ashfield District Council
+Ashford Borough Council
+Babergh District Council
+Badenoch & Strathspey (Kingussie)	 
+Barnsley Metropolitan Council
+Basildon District Council 
+Basingstoke & Deane Borough Council
+Bassetlaw District Council
+Bath & North East Somerset Council
+Bedford Borough Council
+Birmingham (City of)
+Blaby District Council
+Blackburn with Darwen Borough Council
+Blackpool Borough Council
+Blaneau Gwent County Borough Council
+Blyth Valley Borough Council
+Bolsover District Council
+Bolton Metropolitan Borough Council
+Boston Borough Council 
+Bournemouth Borough Council
+Bracknell Forest Borough Council
+Bradford (City of)
+Braintree District Council
+Breckland Council
+Brentwood Borough Council
+Bridgend County Borough Council
+Bridgnorth District Council
+Brighton & Hove Council
+Bristol City Council
+Broadland District Council
+Bromsgrove District Council
+Broxbourne Borough Council
+Broxtowe Borough Council
+Buckinghamshire Council 
+Burnley Borough Council 
+Bury Metropolitan Borough Council
+Caerphilly County Borough Council
+Caithness (Wick)
+Calderdale MetroBorough Council
+Cambridge City Council
+Cannock Chase District Council
+Canterbury City Council
+Cardiff County Council
+Carmarthenshire County Council
+Castle Point Borough Council
+Central Bedfordshire District Council
+Ceredigion County Council 
+Charnwood Borough Council
+Chelmsford Borough Council
+Cheltenham Borough Council 
+Cherwell District Council 
+Cheshire East Council
+Cheshire West & Chester
+Chester City Council
+Chester-le-Street District Council
+Chesterfield Borough Council
+Chichester District Council
+Chorley Borough Council
+Christchurch Borough Council
+Clackmannanshire
+Colchester Borough Council
+Conwy County Borough Council
+Cornwall Council (Caradon Zone)
+Cornwall Council (Carrick Zone)
+Cornwall Council (Kerrier Zone)
+Cornwall Council (North Cornwall Zone)
+Cornwall Council (Penwith Zone)
+Cornwall Council (Restormel Zone)
+Cotswold District Council
+Coventry (City of)
+Crawley Borough Council
+Cumberland Council
+Dacorum Borough Council
+Darlington Borough Council
+Dartford Borough Council
+Denbighshire County Council 
+Derby City Council
+Derbyshire Dales District Council
+Doncaster Metropolitan Council
+Dover District Council
+Dudley Metropolitan Borough
+Dumfries & Galloway
+Dundee City
+Durham City Council
+East Ayrshire
+East Cambridgeshire District Council
+East Devon District Council
+East Dorset District Council
+East Dunbartonshire
+East Hampshire District Council 
+East Hertfordshire District Council
+East Kilbride
+East Lindsey District Council 
+East Lothian 
+East Renfrewshire
+East Riding Council
+East Staffordshire Borough Council 
+East Suffolk Council
+Eastbourne Borough Council
+Eastleigh Borough Council
+Edinburgh (City of)
+Ellesmere Port & Neston Borough Council
+Elmbridge Borough Council
+Epping Forest Borough Council
+Epsom & Ewell Borough Council
+Erewash Borough Council
+Exeter City Council
+Falkirk
+Fareham Borough Council
+Fenland District Council
+Fife
+Flintshire County Council
+Folkestone & Hythe District Council
+Forest of Dean District Council
+Fylde Borough Council
+Gateshead Metropolitan Borough Council
+Gedling Borough Council
+Glasgow City
+Gloucester City Council
+Gosport Borough Council	 
+Gravesham Borough Council 
+Great Yarmouth Borough Council 
+Guildford Borough Council
+Gwynedd County Council
+Halton Borough Council
+Harborough District Council 
+Harlow District Council 
+Hart District Council
+Hartlepool Borough Council 
+Hastings Borough Council 
+Havant Borough Council
+Herefordshire Council
+Hertsmere Borough Council
+High Peak Borough Council
+Highland
+Hinckley & Bosworth Borough Council
+Horsham District Council 
+Huntingdonshire District Council
+Hyndburn Borough Council
+Inverclyde
+Ipswich Borough Council
+Isle of Anglesey County Council
+Isle of Man (Douglas Borough Council)
+Isle of Wight Council
+Isles of Scilly Council
+Kennet District Council
+Kings Lynn & West Norfolk Borough Council
+Kingston Upon Hull City Council
+Kirklees Metropolitan Borough Council
+Knowsley Metropolitan Borough Council
+Lancaster City Council
+Leeds (City of )
+Leicester City Council
+Lewes District Council
+Lichfield District Council 
+Lincoln City Council
+Liverpool (City of)
+Lochaber (Fort William)
+London (City of)
+Luton Borough Council
+Maidstone Borough Council	 
+Maldon District Council
+Malvern Hills District Council	 
+Manchester (City of)
+Mansfield District Council 
+Medway Council
+Melton Borough Council	 
+Mendip District Council
+Merthyr Tydfil County Borough Council
+Mid Devon District Council
+Mid Suffolk District Council
+Mid Sussex District Council
+Middlesbrough Council
+Midlothian
+Milton Keynes Council
+Mole Valley District Council
+Monmouthshire County Council
+Moray
+Nairn	IV12 4AU	 
+Neath Port Talbot County Borough Council
+New Forest District Council
+Newark & Sherwood District Council
+Newcastle-under-Lyme Borough Council
+Newcastle-Upon-Tyne (City of)
+Newport County Borough Council
+North Ayrshire
+North Devon District Council
+North Dorset District Council
+North East Derbyshire District Council
+North East Lincolnshire Council
+North Hertfordshire District Council
+North Kesteven District Council 
+North Lanarkshire
+North Lincolnshire Council	 
+North Norfolk District Council 
+North Northamptonshire Council
+North Shropshire District Council
+North Somerset Council
+North Tyneside Metro Borough Council
+North Warwickshire  Borough Council
+North West Leicestershire  Borough Council
+North Yorkshire Council
+Northumberland County Council	 
+Norwich City Council
+Nottingham City Council
+Nuneaton & Bedworth Borough Council
+Oadby and Wigston Borough Council
+Oldham Metropolitan Borough Council
+Orkney Islands
+Oswestry Borough Council
+Oxford City Council
+Pembrokeshire County Council
+Pendle Borough Council
+Perth & Kinross
+Peterborough City Council
+Plymouth City Council
+Poole Borough Council
+Portsmouth City Council
+Powys County Council
+Preston Borough Council
+Purbeck District Council
+Reading Borough Council
+Redcar & Cleveland Council 
+Redditch Borough Council
+Reigate & Banstead Borough Council
+Renfrewshire
+Rhondda Cynon Taff County Borough Council
+Ribble Valley Borough Council
+Rochdale Metropolitan Borough Council
+Rochford District Council
+Ross & Cromarty (Dingwall)
+Rossendale Borough Council
+Rother District Council
+Rotherham Borough Council
+Royal Borough Windsor & Maidenhead
+Rugby Borough Council
+Runnymede Borough Council
+Rushcliffe Borough Council
+Rushmoor Borough Council
+Rutland County Council
+Salford City Council
+Sandwell Metropolitan District
+Scottish Borders
+Sedgefield Borough Council 
+Sedgemoor District Council
+Sefton Metropolitan Borough Council
+Sevenoaks District Council
+Sheffield (City of)
+Shetland Islands
+Shropshire Council
+Skye & Lochalsh (Isle Of Skye) 
+Slough Borough Council
+Solihull Metropolitan Borough Council
+South Ayrshire
+South Cambridgeshire District Council 
+South Derbyshire District Council 
+South East and Metropolitan
+South Gloucestershire Council
+South Hams District Council
+South Holland District Council
+South KestevenDistrict Council
+South Lanarkshire Council
+South Norfolk District Council
+South OxfordshireDistrict Council 
+South Ribble Borough Council 
+South ShropshireDistrict Council
+South Somerset District Council
+South StaffordshireDistrict Council
+South Tyneside Borough Council
+Southampton City Council
+Southend-on-Sea Borough Council
+Spelthorne Borough Council	 
+St Albans City Council
+St Helens Metropolitan District Council 
+Stafford Borough Council
+Staffordshire Moorlands District Council 
+Stevenage Borough Council
+Stirling
+Stockport Metropolitan Borough Council
+Stockton-on-Tees Council 
+Stoke-on-Trent City Council
+Stratford-on-Avon District Council
+Stroud District Council
+Sunderland (City of)
+Surrey Heath Borough Council
+Sutherland (Golspie)
+Swale Borough Council
+Swansea Council (City and County of)
+Swindon Borough Council
+Tameside Metropolitan Council
+Tamworth Borough Council
+Tandridge District Council
+Taunton Deane Borough Council
+Teesdale District Council
+Teignbridge District Council
+Telford & Wrekin Council
+Tendring District Council
+Test Valley Borough Council
+Tewkesbury Borough Council
+Thanet District Council
+Three Rivers District Council
+Thurrock Borough Council 
+Tonbridge & Malling Borough Council 
+Torbay Borough Council
+Torfaen County Borough Council
+Torridge District Council 
+Trafford Borough Council
+Tunbridge Wells Borough Council
+Uttlesford District Council
+Vale of Glamorgan County Borough Council
+Vale of White Horse District Council
+Vale Royal Borough Council
+Walsall Metropolitan Borough Council
+Wakefield (City of)
+Wansbeck District Council
+Warrington Borough Council
+Warwick District Council
+Watford Borough Council
+Waverley Borough Council
+Wealden District Council	 
+Wear Valley District Council
+Welwyn Hatfield District  Council
+West Berkshire District Council 
+West Devon Borough Council	 
+West Dorset District Council
+West Dunbartonshire
+West Lancashire District  Council
+West Lindsey District Council	 
+West Lothian
+West Northamptonshire Council
+West Oxfordshire District Council	 
+West Somerset District Council
+West Suffolk Council
+Western Isles
+Westmorland and Furness Council (Barrow Office) 
+Westmorland and Furness Council (Kendall Office)
+Westmorland and Furness Council (Penrith Office) 
+Weymouth & Portland  Borough Council
+Wigan Metropolitan  Borough Council
+Wiltshire District Council	 
+Winchester City Council 
+Wirral Metropolitan  Borough Council 
+Woking Borough Council 
+Wokingham District Council 
+Wolverhampton Metropolitan  Borough Council
+Worcester City Council
+Worthing Borough Council
+Wrexham County Borough Council	 
+Wychavon District Council
+Wyre Borough Council
+Wyre Forest District Council
+York Council (City of)
