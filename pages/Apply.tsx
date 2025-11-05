@@ -6,6 +6,7 @@ import Checkbox from '../components/Checkbox';
 import FileUpload from '../components/FileUpload';
 import Button from '../components/Button';
 import PasswordStrength from '../components/PasswordStrength';
+import SubmissionModal from '../components/SubmissionModal';
 import { usePasswordValidation } from '../hooks/usePasswordValidation';
 import { auth, db, storage } from '../services/firebase';
 import { EmailAuthProvider, linkWithCredential } from 'firebase/auth';
@@ -13,6 +14,29 @@ import { doc, setDoc } from 'firebase/firestore';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { useAppContext } from '../contexts/AppContext';
 
+
+// Helper to get user-friendly field labels
+const getFieldLabel = (fieldId: string): string => {
+  const fieldLabels: { [key: string]: string } = {
+    firstName: 'First Name',
+    lastName: 'Last Name',
+    email: 'Email Address',
+    phone: 'Mobile Number',
+    area: 'Area / City of Work',
+    password: 'Password',
+    confirmPassword: 'Confirm Password',
+    badgeNumber: 'Badge Number',
+    badgeExpiry: 'Badge Expiry Date',
+    issuingCouncil: 'Issuing Council',
+    drivingLicenseNumber: 'Driving License Number',
+    licenseExpiry: 'License Expiry Date',
+    vehicleMake: 'Vehicle Make',
+    vehicleModel: 'Vehicle Model',
+    vehicleReg: 'Vehicle Registration',
+    insuranceExpiry: 'Insurance Expiry Date',
+  };
+  return fieldLabels[fieldId] || fieldId;
+};
 
 const Apply: React.FC = () => {
   const navigate = useNavigate();
@@ -43,8 +67,11 @@ const Apply: React.FC = () => {
   });
   const [errors, setErrors] = useState<{ [key: string]: string }>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [showModal, setShowModal] = useState(false);
+  const [submissionSuccess, setSubmissionSuccess] = useState(false);
+  const [submissionErrors, setSubmissionErrors] = useState<{ field: string; message: string }[]>([]);
   const passwordValidation = usePasswordValidation(formData.password);
-  
+
   const debounceTimeoutRef = useRef<number | null>(null);
 
   // Pre-fill form if a partial application exists
@@ -118,6 +145,18 @@ const Apply: React.FC = () => {
     if (formData.password !== formData.confirmPassword) newErrors.confirmPassword = 'Passwords do not match.';
 
     setErrors(newErrors);
+
+    // Convert errors to structured format for modal
+    if (Object.keys(newErrors).length > 0) {
+      const structuredErrors = Object.keys(newErrors).map(fieldId => ({
+        field: getFieldLabel(fieldId),
+        message: newErrors[fieldId]
+      }));
+      setSubmissionErrors(structuredErrors);
+      setSubmissionSuccess(false);
+      setShowModal(true);
+    }
+
     return Object.keys(newErrors).length === 0;
   };
 
@@ -179,24 +218,80 @@ const Apply: React.FC = () => {
 
       await setDoc(doc(db, 'applications', user.uid), applicationData);
 
-      // Force a full page navigation to ensure auth state is correctly loaded on the confirmation page.
-      // This solves a race condition where the user might be redirected to /login incorrectly.
-      window.location.assign('/#/confirmation');
+      // Show success modal
+      setSubmissionSuccess(true);
+      setSubmissionErrors([]);
+      setShowModal(true);
 
     } catch (error: any) {
       console.error("Application submission error:", error);
-      const newErrors: { [key: string]: string } = {};
+      const errorList: { field: string; message: string }[] = [];
+
       if (error.code === 'auth/email-already-in-use') {
-        newErrors.email = 'This email address is already in use by another account.';
+        errorList.push({
+          field: 'Email Address',
+          message: 'This email address is already in use by another account. Please use a different email or try logging in.'
+        });
+        setErrors({ email: 'This email address is already in use by another account.' });
       } else if (error.code === 'auth/credential-already-in-use') {
-         newErrors.email = 'This email address is already linked to another account.';
+        errorList.push({
+          field: 'Email Address',
+          message: 'This email address is already linked to another account. Please use a different email.'
+        });
+        setErrors({ email: 'This email address is already linked to another account.' });
+      } else if (error.code === 'storage/unauthorized') {
+        errorList.push({
+          field: 'File Upload',
+          message: 'File upload failed due to permission error. Please try again or contact support.'
+        });
+      } else if (error.code === 'storage/canceled') {
+        errorList.push({
+          field: 'File Upload',
+          message: 'File upload was canceled. Please try submitting again.'
+        });
+      } else if (error.code === 'auth/weak-password') {
+        errorList.push({
+          field: 'Password',
+          message: 'Password is too weak. Please choose a stronger password.'
+        });
+        setErrors({ password: 'Password is too weak.' });
+      } else if (error.code === 'auth/invalid-email') {
+        errorList.push({
+          field: 'Email Address',
+          message: 'Email address format is invalid. Please check and try again.'
+        });
+        setErrors({ email: 'Email address format is invalid.' });
       } else {
-        newErrors.form = 'An unexpected error occurred. Please try again.';
+        errorList.push({
+          field: 'Application Submission',
+          message: 'An unexpected error occurred while submitting your application. Please try again. If the problem persists, contact support.'
+        });
       }
-      setErrors(newErrors);
+
+      setSubmissionErrors(errorList);
+      setSubmissionSuccess(false);
+      setShowModal(true);
     } finally {
         setIsLoading(false);
     }
+  };
+
+  const handleModalClose = () => {
+    setShowModal(false);
+    // Scroll to first error field if there are errors
+    if (!submissionSuccess && Object.keys(errors).length > 0) {
+      const firstErrorField = Object.keys(errors)[0];
+      const element = document.getElementById(firstErrorField);
+      if (element) {
+        element.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        element.focus();
+      }
+    }
+  };
+
+  const handleViewApplication = () => {
+    // Navigate to confirmation page
+    window.location.assign('/#/confirmation');
   };
 
   const councils = [ 'Aberdeen City', 'Other' ]; // Truncated for brevity
@@ -273,6 +368,14 @@ const Apply: React.FC = () => {
         </div>
 
       </form>
+
+      <SubmissionModal
+        isOpen={showModal}
+        isSuccess={submissionSuccess}
+        errors={submissionErrors}
+        onClose={handleModalClose}
+        onViewApplication={handleViewApplication}
+      />
     </div>
   );
 };
