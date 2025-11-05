@@ -126,7 +126,8 @@ const Apply: React.FC = () => {
       ...prev,
       [id]: isCheckbox ? checked : value,
     }));
-    debouncedSave();
+    // Temporarily disable auto-save to fix input interference issue
+    // debouncedSave();
   };
 
   const handleFileChange = (id: string) => (file: File | null) => {
