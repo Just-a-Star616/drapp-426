@@ -15,6 +15,13 @@ const Login = () => {
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
 
+  console.log('LOGIN PAGE - Branding data:', {
+    companyName: branding.companyName,
+    logoUrl: branding.logoUrl,
+    tagline: branding.tagline,
+    primaryColor: branding.primaryColor
+  });
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsLoading(true);
@@ -40,7 +47,7 @@ const Login = () => {
         <div className="bg-sky-900/70 p-8 rounded-2xl shadow-2xl border border-sky-800 backdrop-blur-sm text-center">
         <img className="mx-auto h-16 w-16 rounded-md mb-4" src={branding.logoUrl} alt={`${branding.companyName} Logo`} />
         <h1 className="text-3xl font-bold text-white">{branding.companyName}</h1>
-        <p className="mt-2 text-lg text-slate-300">Track Application</p>
+        {branding.tagline && <p className="mt-2 text-lg text-slate-300">{branding.tagline}</p>}
 
           <form onSubmit={handleSubmit} className="mt-8 space-y-6 text-left">
             <TextInput

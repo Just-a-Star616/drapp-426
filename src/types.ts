@@ -3,6 +3,7 @@ export interface BrandingConfig {
   companyName: string;
   logoUrl: string;
   primaryColor: string;
+  tagline?: string;
 }
 
 export interface Application {

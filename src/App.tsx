@@ -14,51 +14,59 @@ import AdminDashboard from './pages/AdminDashboard';
 import { BrandingConfig, Application, ApplicationStatus } from './types';
 import { auth, db } from './services/firebase';
 import { onAuthStateChanged, User, signInAnonymously } from 'firebase/auth';
-import { doc, onSnapshot, getDoc } from 'firebase/firestore';
+import { doc, onSnapshot, getDoc, getDocFromServer } from 'firebase/firestore';
 
 const App: React.FC = () => {
-  const [branding, setBranding] = useState<BrandingConfig>({
-    companyName: 'Darthstar Drivers',
-    logoUrl: 'http://lv426dev.co.uk/wp-content/uploads/2025/11/HeroVillianYoda.png',
-    primaryColor: 'papaya',
-  });
+  const [branding, setBranding] = useState<BrandingConfig | null>(null);
   const [statusSteps, setStatusSteps] = useState([]);
 
   const [currentUser, setCurrentUser] = useState<User | null>(null);
   const [application, setApplication] = useState<Application | null>(null);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [isLoading, setIsLoading] = useState(true);
+  const [isAuthLoaded, setIsAuthLoaded] = useState(false);
+  const [isBrandingLoaded, setIsBrandingLoaded] = useState(false);
 
   useEffect(() => {
-    // In a real multi-tenant app, you'd determine the configId dynamically (e.g., from the URL)
-    const configId = 'defaultConfig'; 
-    const configRef = doc(db, 'configs', configId);
+    // Load branding directly from server (no cache) on mount
+    const loadBranding = async () => {
+      try {
+        const configId = 'defaultConfig';
+        const configRef = doc(db, 'configs', configId);
 
-    const unsubConfig = onSnapshot(configRef, (docSnap) => {
-      if (docSnap.exists()) {
-        const configData = docSnap.data();
-        setBranding(configData.branding);
-        setStatusSteps(configData.statusSteps);
-      } else {
-        console.error("Branding configuration not found!");
+        // Force server fetch, bypass cache completely
+        const docSnap = await getDocFromServer(configRef);
+
+        if (docSnap.exists()) {
+          const configData = docSnap.data();
+          console.log('Branding loaded from server:', configData.branding?.companyName);
+          setBranding(configData.branding);
+          setStatusSteps(configData.statusSteps);
+        } else {
+          console.error("Branding configuration not found!");
+        }
+      } catch (error) {
+        console.error("Error loading branding:", error);
+      } finally {
+        setIsBrandingLoaded(true);
       }
-    });
+    };
+
+    loadBranding();
 
     const unsubAuth = onAuthStateChanged(auth, (user) => {
       if (user) {
         setCurrentUser(user);
-        setIsLoading(false);
+        setIsAuthLoaded(true);
       } else {
         // No user, sign in anonymously to capture partial applications
         signInAnonymously(auth).catch(error => {
             console.error("Anonymous sign-in failed:", error);
-            setIsLoading(false); // Stop loading even if anon sign-in fails
+            setIsAuthLoaded(true); // Stop loading even if anon sign-in fails
         });
       }
     });
 
     return () => {
-      unsubConfig();
       unsubAuth();
     };
   }, []);
@@ -109,23 +117,28 @@ const App: React.FC = () => {
   }, [currentUser]);
 
   // Register Service Worker for Firebase Cloud Messaging
-  useEffect(() => {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/service-worker.js')
-        .then(swReg => {
-          console.log('Service Worker is registered', swReg);
-        })
-        .catch(error => {
-          console.error('Service Worker Error', error);
-        });
-    }
-  }, []);
+  // TEMPORARILY DISABLED - uncomment when push notifications are needed
+  // useEffect(() => {
+  //   if ('serviceWorker' in navigator) {
+  //     navigator.serviceWorker.register('/service-worker.js')
+  //       .then(swReg => {
+  //         console.log('Service Worker is registered', swReg);
+  //       })
+  //       .catch(error => {
+  //         console.error('Service Worker Error', error);
+  //       });
+  //   }
+  // }, []);
   
   // An authenticated user is one who is logged in and NOT anonymous.
   const isAuthenticated = !!currentUser && !currentUser.isAnonymous;
 
   const contextValue = useMemo(() => ({
-    branding,
+    branding: branding || {
+      companyName: 'Loading...',
+      logoUrl: '',
+      primaryColor: 'sky'
+    },
     statusSteps,
     application,
     setApplication: () => {}, // Firestore handles updates
@@ -134,7 +147,8 @@ const App: React.FC = () => {
     currentUser
   }), [branding, statusSteps, application, isAuthenticated, currentUser]);
 
-  if (isLoading) {
+  // Only render the app when both auth and branding have loaded
+  if (!isAuthLoaded || !isBrandingLoaded) {
     return (
       <div className="flex h-screen w-full items-center justify-center">
          <svg className="animate-spin h-8 w-8 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
