@@ -4,11 +4,11 @@ service firebase.storage {
     // Helper function to check if user is admin
     function isAdmin() {
       return request.auth != null &&
-             exists(/databases/$(database)/documents/admins/$(request.auth.uid));
+             firestore.get(/databases/(default)/documents/admins/$(request.auth.uid)).data != null;
     }
 
     // Application documents - users can upload their own, admins can read all
-    match /applications/{userId}/{document} {
+    match /applications/{userId}/{allPaths=**} {
       // Allow users to upload their own documents
       allow write: if request.auth != null && request.auth.uid == userId;
       // Allow users to read their own documents, admins can read all
