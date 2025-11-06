@@ -35,11 +35,15 @@ service cloud.firestore {
       allow write: if request.auth != null && request.auth.uid == userId;
     }
 
-    // Activity Logs - anyone can create, admins can read all, users can read their own
+    // Activity Logs - anyone authenticated can create, admins can read all, users can read their own
     match /activityLogs/{logId} {
       allow read: if request.auth != null &&
                      (isAdmin() || resource.data.applicationId == request.auth.uid);
-      allow create: if request.auth != null; // Allow both staff and applicants to log
+      allow create: if request.auth != null &&
+                       request.resource.data.keys().hasAll(['applicationId', 'applicantName', 'applicantEmail', 'timestamp', 'activityType', 'actor', 'actorId', 'actorName', 'details']) &&
+                       request.resource.data.timestamp is number &&
+                       request.resource.data.applicationId is string &&
+                       request.resource.data.actorId == request.auth.uid; // Must be logging their own actions
       allow update, delete: if false; // Logs are immutable once created
     }
 
