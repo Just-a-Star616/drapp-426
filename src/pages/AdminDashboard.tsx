@@ -60,6 +60,16 @@ const AdminDashboard: React.FC = () => {
     return () => unsubscribe();
   }, []);
 
+  // Update selected application when applications data changes
+  useEffect(() => {
+    if (selectedApplication) {
+      const updatedApp = applications.find(app => app.id === selectedApplication.id);
+      if (updatedApp) {
+        setSelectedApplication(updatedApp);
+      }
+    }
+  }, [applications]);
+
   // Filter applications based on search and status
   useEffect(() => {
     let filtered = applications;
