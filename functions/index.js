@@ -291,3 +291,64 @@ exports.notifyNewApplication = functions.firestore
       throw error;
     }
   });
+
+/**
+ * Cloud Function that sends push notifications to applicants when their status changes
+ */
+exports.sendPushNotification = functions.firestore
+  .document('applications/{applicationId}')
+  .onUpdate(async (change, context) => {
+    const applicationId = context.params.applicationId;
+    const oldData = change.before.data();
+    const newData = change.after.data();
+
+    // Only send notification if status actually changed
+    if (oldData.status === newData.status) {
+      console.log('Status unchanged, skipping push notification');
+      return null;
+    }
+
+    console.log(`Status changed from ${oldData.status} to ${newData.status} for ${applicationId}`);
+
+    // Get user's FCM token
+    try {
+      const tokenDoc = await admin.firestore().doc(`fcmTokens/${applicationId}`).get();
+
+      if (!tokenDoc.exists) {
+        console.log('No FCM token found for user:', applicationId);
+        return null;
+      }
+
+      const fcmToken = tokenDoc.data().token;
+
+      // Get branding info from configs
+      const configDoc = await admin.firestore().doc('configs/defaultConfig').get();
+      const branding = configDoc.exists ? configDoc.data().branding : null;
+
+      // Create push notification message
+      const message = {
+        notification: {
+          title: `${branding?.companyName || 'Driver Recruitment'} - Application Update`,
+          body: `Your application status has been updated to: ${newData.status}`,
+          icon: branding?.logoUrl || '/logo.png',
+        },
+        data: {
+          status: newData.status,
+          applicationId: applicationId,
+          companyName: branding?.companyName || 'Driver Recruitment',
+          logoUrl: branding?.logoUrl || '/logo.png',
+        },
+        token: fcmToken,
+      };
+
+      // Send push notification
+      const response = await admin.messaging().send(message);
+      console.log('Successfully sent push notification:', response);
+      return response;
+
+    } catch (error) {
+      console.error('Error sending push notification:', error);
+      // Don't throw - we don't want to fail the status update if notification fails
+      return null;
+    }
+  });

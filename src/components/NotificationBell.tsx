@@ -1,87 +1,27 @@
 import React, { useState, useEffect } from 'react';
 import { useAppContext } from '../contexts/AppContext';
-
-// This is a VAPID public key. In a real application, you would generate your own pair of keys
-// (public and private) and the private key would be stored securely on your server.
-const VAPID_PUBLIC_KEY = 'BChkR-P-4-sD3g2cTnm-3kC-sfOqjYj4fL_2wJ8gX_X1rE-e_8cZ-u_n-n_fA-bC-d_E-g_H-i_J-k_L-m_N-o';
-
-// Helper function to convert the VAPID key
-const urlBase64ToUint8Array = (base64String: string) => {
-    const padding = '='.repeat((4 - base64String.length % 4) % 4);
-    const base64 = (base64String + padding).replace(/-/g, '+').replace(/_/g, '/');
-    const rawData = window.atob(base64);
-    const outputArray = new Uint8Array(rawData.length);
-    for (let i = 0; i < rawData.length; ++i) {
-        outputArray[i] = rawData.charCodeAt(i);
-    }
-    return outputArray;
-};
+import { useNotifications } from '../hooks/useNotifications';
 
 const NotificationBell: React.FC = () => {
     const { branding } = useAppContext();
-    const [isSubscribed, setIsSubscribed] = useState(false);
-    const [notificationPermission, setNotificationPermission] = useState<NotificationPermission>('default');
-    const [isLoading, setIsLoading] = useState(true);
+    const { notificationPermission, fcmToken, requestPermission } = useNotifications();
+    const [isLoading, setIsLoading] = useState(false);
 
-    const isSupported = 'serviceWorker' in navigator && 'PushManager' in window;
+    const isSubscribed = notificationPermission === 'granted' && !!fcmToken;
+    const isSupported = 'Notification' in window;
 
-    useEffect(() => {
-        if (!isSupported) {
-            setIsLoading(false);
-            return;
-        }
-
-        setNotificationPermission(Notification.permission);
-
-        navigator.serviceWorker.ready.then(registration => {
-            registration.pushManager.getSubscription().then(subscription => {
-                setIsSubscribed(!!subscription);
-                setIsLoading(false);
-            });
-        });
-    }, [isSupported]);
-    
     const handleToggleSubscription = async () => {
         if (!isSupported) return;
 
-        setIsLoading(true);
-
-        const registration = await navigator.serviceWorker.ready;
-
         if (isSubscribed) {
-            // Unsubscribe
-            const subscription = await registration.pushManager.getSubscription();
-            if (subscription) {
-                await subscription.unsubscribe();
-                // In a real app, you would also send a request to your server to remove the subscription.
-                console.log('User unsubscribed.');
-                setIsSubscribed(false);
-            }
-        } else {
-            // Subscribe
-            if (notificationPermission === 'default') {
-                const permission = await Notification.requestPermission();
-                setNotificationPermission(permission);
-                if (permission !== 'granted') {
-                    setIsLoading(false);
-                    return;
-                }
-            }
-            
-            if (notificationPermission === 'granted' || (await Notification.requestPermission()) === 'granted') {
-                 try {
-                    const subscription = await registration.pushManager.subscribe({
-                        userVisibleOnly: true,
-                        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC_KEY),
-                    });
-                     // In a real app, you would send this subscription object to your backend server to store.
-                    console.log('User is subscribed:', JSON.stringify(subscription));
-                    setIsSubscribed(true);
-                } catch (error) {
-                    console.error('Failed to subscribe the user: ', error);
-                }
-            }
+            // User wants to disable - can't actually revoke permission via code
+            // Show message to user to disable in browser settings
+            alert('To disable notifications, please update your browser settings for this site.');
+            return;
         }
+
+        setIsLoading(true);
+        await requestPermission();
         setIsLoading(false);
     };
     

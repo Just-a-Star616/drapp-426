@@ -1,4 +1,36 @@
 // service-worker.js
+// Firebase Cloud Messaging Service Worker
+
+// Import Firebase scripts for FCM
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js');
+importScripts('https://www.gstatic.com/firebasejs/10.7.1/firebase-messaging-compat.js');
+
+// Initialize Firebase in the service worker
+firebase.initializeApp({
+  apiKey: "AIzaSyCxUVjvmrjUcKAPP86c9v_bk9AQThZOtj8",
+  authDomain: "drapp-426.firebaseapp.com",
+  projectId: "drapp-426",
+  storageBucket: "drapp-426.firebasestorage.app",
+  messagingSenderId: "602539304557",
+  appId: "1:602539304557:web:e11d9d44fa47f663b08164"
+});
+
+const messaging = firebase.messaging();
+
+// Handle background messages
+messaging.onBackgroundMessage(function(payload) {
+  console.log('Received background message:', payload);
+
+  const notificationTitle = payload.notification?.title || payload.data?.title || 'Driver Recruitment';
+  const notificationOptions = {
+    body: payload.notification?.body || payload.data?.body || 'You have a new notification',
+    icon: payload.notification?.icon || payload.data?.logoUrl || '/logo.png',
+    badge: payload.data?.logoUrl || '/logo.png',
+    data: payload.data
+  };
+
+  return self.registration.showNotification(notificationTitle, notificationOptions);
+});
 
 self.addEventListener('push', function(event) {
   let data = {};
