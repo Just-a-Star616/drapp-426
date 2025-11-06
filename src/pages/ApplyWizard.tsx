@@ -770,7 +770,17 @@ const ApplyWizard: React.FC = () => {
   ];
 
   const renderProgressBar = () => {
-    const totalSteps = formData.isLicensedDriver ? (formData.hasOwnVehicle ? 7 : 6) : 1;
+    // For licensed drivers, we need to know if they have a vehicle
+    // On step 5, we ask the question, so before that assume 7 steps
+    let totalSteps = 1;
+    if (formData.isLicensedDriver) {
+      if (currentStep < 5) {
+        totalSteps = 7; // Don't know yet, assume max
+      } else {
+        totalSteps = formData.hasOwnVehicle ? 7 : 6;
+      }
+    }
+
     const progress = (currentStep / totalSteps) * 100;
 
     return (
@@ -1155,6 +1165,14 @@ const ApplyWizard: React.FC = () => {
               </div>
             </div>
           </>
+        )}
+
+        {/* Fallback if no step matches - this should never show */}
+        {currentStep > 1 && currentStep < 8 && !formData.isLicensedDriver && (
+          <div className="text-center text-white">
+            <p>Invalid state: Step {currentStep} but not licensed. This shouldn't happen.</p>
+            <button onClick={() => setCurrentStep(1)} className="text-cyan-400 underline">Go back to Step 1</button>
+          </div>
         )}
 
         {errors.form && <p className="text-sm text-red-500 text-center">{errors.form}</p>}
