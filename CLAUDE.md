@@ -4,24 +4,31 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-This is a white-label, mobile-first driver recruitment application built with React, TypeScript, Vite, and Firebase. It allows applicants to submit driver applications, upload documents, track application status, and includes authentication with password reset flows.
+This is a white-label, mobile-first driver recruitment application built with React, TypeScript, Vite, and Firebase. It allows applicants to submit driver applications, upload documents, track application status, and includes authentication with password reset flows. The app includes an admin dashboard for managing applications and sending notifications.
 
 ## Development Commands
 
-**Start development server:**
+**Frontend:**
 ```bash
-npm run dev
-```
-Runs on `http://0.0.0.0:3000` (accessible on local network)
-
-**Build for production:**
-```bash
-npm run build
+npm run dev      # Start development server on http://0.0.0.0:3000
+npm run build    # Build for production
+npm run preview  # Preview production build
 ```
 
-**Preview production build:**
+**Firebase Functions:**
 ```bash
-npm run preview
+cd functions
+npm run serve    # Start Firebase emulators (functions only)
+npm run shell    # Interactive functions shell
+npm run deploy   # Deploy functions to Firebase
+npm run logs     # View function logs
+```
+
+**Firebase Deployment:**
+```bash
+firebase deploy --only hosting  # Deploy hosting only
+firebase deploy --only functions  # Deploy functions only
+firebase deploy  # Deploy everything
 ```
 
 ## Architecture
@@ -36,20 +43,19 @@ npm run preview
 
 ### Application State Management
 - **Real-time sync**: Application data stored in Firestore (`applications` collection, keyed by user UID)
-- **Auto-save**: Partial applications auto-saved every 1.5s while user types (see `src/pages/Apply.tsx:82-89`)
-- **Context**: Global state via `AppContext` (branding, statusSteps, application, currentUser)
-- **Firestore listeners**: Real-time updates using `onSnapshot` for both config and application documents
+- **Auto-save**: Partial applications auto-saved every 1.5s while user types (debounced in `src/pages/Apply.tsx:111-118`)
+- **Context**: Global state via `AppContext` defined in `src/contexts/AppContext.tsx`
+  - Provides: `branding`, `statusSteps`, `application`, `isAuthenticated`, `currentUser`
+  - Computed in `src/App.tsx:136-148` using `useMemo`
+- **Firestore listeners**: Real-time updates using `onSnapshot` in `src/App.tsx`
+  - Branding loaded via `getDocFromServer` (bypasses cache) on mount (line 29-54)
+  - Application synced in real-time per user (line 92-117)
 
 ### White-Label Configuration
 - Branding and status steps stored in Firestore `configs` collection (default document: `defaultConfig`)
-- Config structure:
-  ```typescript
-  {
-    branding: { companyName, logoUrl, primaryColor },
-    statusSteps: [{ status, title, description }]
-  }
-  ```
-- Configuration loaded via real-time listener in `src/App.tsx:29-42`
+- Configuration loaded via `getDocFromServer` (bypasses cache) in `src/App.tsx:29-54`
+- Admin dashboard (`src/pages/AdminDashboard.tsx`) allows updating branding in real-time
+- Branding cache issue: Uses server fetch to ensure latest branding is always loaded
 
 ### Document Upload Flow
 1. Files selected via `FileUpload` component
@@ -59,10 +65,14 @@ npm run preview
 
 ### Routing
 - Uses `HashRouter` for compatibility with static hosting
-- Route protection:
+- Route protection logic in `src/App.tsx:166-179`:
   - Unauthenticated users redirected to `/home` or `/login`
   - Authenticated users redirected to `/status` when accessing public routes
-- Routes: `/home`, `/apply`, `/login`, `/forgot-password`, `/reset-password`, `/confirmation`, `/status`
+  - Admin routes protected by `isAdmin` state (checks `admins` collection)
+- Routes:
+  - Public: `/home`, `/apply`, `/login`, `/forgot-password`, `/reset-password`
+  - Protected: `/confirmation`, `/status`
+  - Admin: `/admin/login`, `/admin/dashboard`
 
 ### Data Model
 Key types in `src/types.ts`:
@@ -70,14 +80,32 @@ Key types in `src/types.ts`:
 - `ApplicationStatus`: Enum for tracking stages (Submitted, Under Review, Contacted, Meeting Scheduled, Approved, Rejected)
 - `BrandingConfig`: White-label configuration (company name, logo, primary color)
 
+### Firebase Cloud Functions
+Located in `functions/index.js`:
+
+**notifyNewApplication**: Firestore trigger that sends Google Chat notifications when new applications are submitted
+- Only triggers for newly completed (non-partial) applications
+- Requires `googlechat.webhook` environment config
+- Configure via: `firebase functions:config:set googlechat.webhook="https://..."`
+
+**sendPushNotification**: Firestore trigger that sends FCM push notifications when application status changes
+- Looks up FCM tokens in `fcmTokens` collection
+- Includes branding from `configs/defaultConfig`
+- Runs automatically on status updates
+
+**sendCustomNotification**: HTTP function for sending custom notifications to applicants
+- Endpoint for admin dashboard to send immediate or scheduled notifications
+- Supports multiple recipients
+- Body: `{ recipients: string[], title: string, message: string, sendNow: boolean, scheduledFor?: number }`
+
+**processScheduledNotifications**: Scheduled function (runs every minute) to send scheduled notifications
+- Processes notifications stored in `scheduledNotifications` collection
+
 ### Service Worker
 - Implementation in `service-worker.js` at project root
-- Currently disabled in `src/App.tsx:90-100` (commented out)
+- Currently disabled in `src/App.tsx:119-131` (commented out)
 - Enables push notifications for PWA capabilities
-- Uses dynamic branding from push notification payload:
-  - `data.companyName` or `data.title` for notification title
-  - `data.logoUrl` or `data.icon` for notification icon
-  - Fallback to generic defaults if branding not provided
+- Uses dynamic branding from push notification payload
 - When re-enabled, ensure push notifications include branding data from Firestore config
 
 ### Project Structure
@@ -89,31 +117,43 @@ Key types in `src/types.ts`:
 ## Important Files
 
 **Configuration:**
-- `src/services/firebase.ts`: Firebase initialization (requires real config values before deployment)
-- `vite.config.ts`: Vite configuration with GEMINI_API_KEY environment variable loading
-- `.env.local`: Environment variables (GEMINI_API_KEY)
+- `src/services/firebase.ts`: Firebase initialization and exports
+- `vite.config.ts`: Vite configuration with path alias (`@` -> `src/`) and GEMINI_API_KEY
+- `.env.local`: Environment variables (GEMINI_API_KEY for Gemini API integration)
+- `firebase.json`: Firebase project configuration (hosting, functions, firestore, storage)
+- `functions/package.json`: Cloud Functions dependencies (Node 20)
 
-**Deprecated files** (marked for deletion):
-- `src/constants.ts`: Status steps now in Firestore
-- `services/googleApiService.ts`: Backend logic should move to Cloud Functions (already deleted)
+**Utility Scripts:**
+- `check-config.js` / `check-config.cjs`: Configuration validation scripts
+- `functions/check-config.js`: Validates Firebase Functions configuration
+- `functions/update-config.js`: Updates Firebase Functions configuration
 
 ## Firebase Setup Requirements
 
-Before deployment, update `src/services/firebase.ts` with actual Firebase project credentials:
-```typescript
-const firebaseConfig = {
-  apiKey: "YOUR_API_KEY",
-  authDomain: "YOUR_AUTH_DOMAIN",
-  projectId: "YOUR_PROJECT_ID",
-  storageBucket: "YOUR_STORAGE_BUCKET",
-  messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-  appId: "YOUR_APP_ID"
-};
+**Project Configuration:**
+Update `src/services/firebase.ts` with Firebase project credentials before deployment.
+
+**Firestore Collections:**
+- `configs`: Document `defaultConfig` with structure:
+  ```typescript
+  {
+    branding: { companyName: string, logoUrl: string, primaryColor: string, tagline?: string },
+    statusSteps: [{ status: ApplicationStatus, title: string, description: string }]
+  }
+  ```
+- `applications`: Auto-created when users submit applications (keyed by user UID)
+- `admins`: Documents keyed by admin UID for admin access control
+- `fcmTokens`: Stores FCM tokens for push notifications (keyed by user UID)
+- `scheduledNotifications`: Stores scheduled notifications for later delivery
+
+**Firebase Functions Config:**
+```bash
+firebase functions:config:set googlechat.webhook="https://chat.googleapis.com/v1/spaces/..."
 ```
 
-Firestore collections required:
-- `configs`: Document `defaultConfig` with branding and statusSteps
-- `applications`: Auto-created when users submit applications (keyed by user UID)
+**Security Rules:**
+- `firestore.rules`: Database security rules
+- `storage.rules`: Storage bucket rules for document uploads
 
 ## Key Implementation Details
 
@@ -123,16 +163,19 @@ Firestore collections required:
 - Validation enforced before submission in `Apply.tsx`
 
 **Form State Persistence:**
-- Partial applications saved with `isPartial: true` flag
-- Passwords never saved in partial applications (`src/pages/Apply.tsx:71-73`)
-- Existing partial data pre-fills form on mount (`src/pages/Apply.tsx:50-58`)
+- Partial applications saved with `isPartial: true` flag in `src/pages/Apply.tsx:89-109`
+- Passwords never saved in partial applications (deleted from partialData object)
+- Existing partial data pre-fills form on mount (`src/pages/Apply.tsx:78-87`)
+- Auto-save triggers 1.5s after user stops typing (debounced)
 
 **File Upload Pattern:**
 - Files stored temporarily in component state
 - Uploaded to Firebase Storage only on form submission
 - Upload path: `documents/{userId}/{timestamp}-{fileName}`
+- Download URLs stored in application document's `documents` field
 
-**Error Handling:**
-- Form validation errors stored in `errors` state object
-- Field-specific error messages displayed inline
-- Loading states prevent duplicate submissions
+**Admin Features:**
+- Admin dashboard at `/admin/dashboard` for managing applications
+- Change application status, view applicant details, and upload documents
+- Send custom notifications to one or multiple applicants
+- Schedule notifications for later delivery
