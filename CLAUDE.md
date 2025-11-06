@@ -118,7 +118,7 @@ The application supports two distinct user journeys:
 - Routes:
   - Public: `/home`, `/apply`, `/login`, `/forgot-password`, `/reset-password`
   - Protected: `/confirmation`, `/status`
-  - Admin: `/admin/login`, `/admin/dashboard`
+  - Admin: `/admin/login`, `/admin/dashboard`, `/admin/branding`
 
 ### Data Model
 Key types in `src/types.ts`:
@@ -166,8 +166,18 @@ Tracks administrative progress (separate from licensing progress for unlicensed)
 The application includes comprehensive activity logging to track all actions by staff and applicants:
 
 **Logged Activities**:
-- **Staff actions**: Status updates, notification sending, document uploads (when implemented)
-- **Applicant actions**: Document uploads, information updates, vehicle additions, DBS number additions
+- **Staff actions**:
+  - Status updates (with old/new values)
+  - Custom notification sending (with title and recipient details)
+  - Document uploads on behalf of applicants (with document type)
+  - Applicant information edits (with field-level change tracking)
+  - Unlicensed driver progress updates (marking stages complete/incomplete)
+- **Applicant actions**:
+  - Document uploads (with document types and counts)
+  - Information updates (personal details, license details, vehicle details)
+  - Vehicle additions
+  - DBS number additions
+  - Unlicensed progress self-updates
 
 **Implementation** (`src/services/activityLog.ts`):
 - `logActivity()`: Central function to create activity log entries in Firestore
@@ -285,8 +295,16 @@ firebase functions:config:set googlechat.webhook="https://chat.googleapis.com/v1
 ```
 
 **Security Rules:**
-- `firestore.rules`: Database security rules
+- `firestore.rules`: Database security rules with validation
+  - Activity logs require proper field validation and actor ID matching authenticated user
+  - Admins can read/write all collections, users can only access their own data
 - `storage.rules`: Storage bucket rules for document uploads
+
+**Firestore Indexes:**
+- `firestore.indexes.json`: Composite indexes configuration
+  - Activity logs indexed by `applicationId` (ascending) + `timestamp` (descending)
+  - Required for querying activity logs per application sorted by time
+  - Deploy via: `firebase deploy --only firestore:indexes`
 
 ## Key Implementation Details
 
@@ -322,23 +340,63 @@ firebase functions:config:set googlechat.webhook="https://chat.googleapis.com/v1
 - **View all applicant details**:
   - Licensed drivers: Badge details, driving license, DBS number, vehicle ownership, vehicle details (if provided), all documents
   - Unlicensed drivers: 5-step licensing progress with visual indicators, vehicle details (if added), licensing documents
+- **Edit applicant information**:
+  - Staff can edit personal details (name, phone, area)
+  - Edit license details (badge number, expiry, issuing council, driving license)
+  - Edit vehicle details (make, model, registration, insurance expiry)
+  - All edits tracked in activity logs with before/after values
+- **Document management**:
+  - Upload documents on behalf of applicants
+  - Support for all document types (badge, license, insurance, V5C, PHV, DBS, medical, knowledge test)
+  - View and download existing documents
+  - Upload buttons available for each document type
+- **Unlicensed progress tracking**:
+  - Mark each of 5 licensing stages as complete/incomplete
+  - Checkboxes for: Eligibility, DBS, Medical, Knowledge Test, Council Application
+  - All progress updates logged with staff actor identification
 - **Status management**: Change application status (Submitted → Under Review → Contacted → Meeting Scheduled → Approved/Rejected)
 - **Notifications**:
   - Send custom notifications to individual or multiple applicants
   - Schedule notifications for later delivery
   - Status change notifications sent automatically via FCM
+- **Activity history**: View comprehensive activity logs for each applicant
 - **Complete field visibility**: All fields and documents visible to staff for validation before dispatch system entry
-- **Real-time updates**: Application list updates in real-time via Firestore listeners
+- **Real-time updates**:
+  - Application list updates in real-time via Firestore listeners
+  - Selected application modal updates automatically when data changes
+  - No need to close/reopen modal to see changes
 
 **Applicant Status Page (src/pages/Status.tsx):**
 - **Licensed drivers**:
   - View submitted application details
+  - **Edit personal information**: Can update name, phone, area, license details, vehicle details
   - Upload/update missing documents (badge, license, insurance, V5C, PHV)
   - Add DBS check number for staff validation
   - Add vehicle details if initially selected "fleet vehicle"
+  - All edits tracked in activity logs
 - **Unlicensed drivers**:
   - Track 5-step licensing progress with visual checklist
   - Upload licensing documents as received (DBS, medical, knowledge test)
   - Add vehicle details if initially selected "fleet vehicle"
+  - **Edit personal information**: Same editing capabilities as licensed drivers
   - View personal information
+- **Activity history**: View own activity log showing all changes made to application
 - All document uploads optional with clear messaging about staff validation
+
+**Branding Settings Page (src/pages/BrandingSettings.tsx):**
+- Dedicated page for managing company branding at `/admin/branding`
+- **Customizable fields**:
+  - Company name (required)
+  - Logo URL (required)
+  - Primary color (required) - with visual color picker
+  - Tagline (optional)
+- **Live preview**: Shows real-time preview of branding changes before saving
+- **User-friendly interface**:
+  - Color picker with hex code input
+  - Form validation for required fields
+  - Reset button to revert changes
+  - Helpful tips section with best practices
+- **Updates configs/defaultConfig** in Firestore while preserving other fields
+- **Automatic page reload** after save to show new branding across the app
+- **Access**: Via "Branding" button in AdminDashboard header (paint brush icon)
+- Protected route - requires admin authentication
