@@ -11,6 +11,7 @@ import ResetPassword from './pages/ResetPassword';
 import ApplicationConfirmation from './pages/ApplicationConfirmation';
 import AdminLogin from './pages/AdminLogin';
 import AdminDashboard from './pages/AdminDashboard';
+import BrandingSettings from './pages/BrandingSettings';
 import { BrandingConfig, Application, ApplicationStatus } from './types';
 import { auth, db } from './services/firebase';
 import { onAuthStateChanged, User, signInAnonymously } from 'firebase/auth';
@@ -180,6 +181,7 @@ const App: React.FC = () => {
             {/* Admin Routes */}
             <Route path="/admin/login" element={!isAdmin ? <AdminLogin /> : <Navigate to="/admin/dashboard" />} />
             <Route path="/admin/dashboard" element={isAdmin ? <AdminDashboard /> : <Navigate to="/admin/login" />} />
+            <Route path="/admin/branding" element={isAdmin ? <BrandingSettings /> : <Navigate to="/admin/login" />} />
 
             <Route path="*" element={<Navigate to="/home" />} />
           </Routes>
