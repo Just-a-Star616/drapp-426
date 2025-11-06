@@ -26,12 +26,43 @@ This guide walks you through setting up the admin dashboard for managing driver 
 
 ## Step 3: Create Admin Users in Firestore
 
-You need to manually add admin users to Firestore:
+The admin login page supports two authentication methods:
+- **Google Sign-In** (recommended for internal staff)
+- **Email/Password** (for external admins or contractors)
+
+### Method 1: Google Sign-In Admin
+
+**Option A: Have them sign in first**
+1. Ask the admin user to visit your site at `/#/admin/login`
+2. They click "Sign in with Google"
+3. They will see an "Access denied" error
+4. Go to Firebase Console → **Authentication** → **Users**
+5. Copy their UID
+6. Add them to the `admins` collection (see below)
+
+**Option B: Create manually (if you know their Google email)**
+1. Have them sign in once (they'll get access denied)
+2. Get their UID from Firebase Console → Authentication → Users
+3. Add them to the `admins` collection (see below)
+
+### Method 2: Email/Password Admin
+
+1. Go to Firebase Console → **Authentication** → **Users**
+2. Click **Add user**
+3. Enter their email address
+4. Enter a secure password (or generate one)
+5. Copy the generated UID
+6. Share the credentials securely with the admin user
+7. Add them to the `admins` collection (see below)
+
+### Adding Admin to Firestore
+
+After creating the auth account (Google or Email/Password):
 
 1. Go to Firebase Console → **Firestore Database**
-2. Create a new collection called `admins`
+2. Navigate to or create collection: `admins`
 3. Click **Add document**
-4. For **Document ID**: Use the user's UID (you'll get this after they sign in once)
+4. **Document ID**: Use the user's UID (from step above)
 5. Add fields:
    ```
    email: "admin@example.com"
@@ -40,21 +71,7 @@ You need to manually add admin users to Firestore:
    ```
 6. Click **Save**
 
-### How to get a user's UID:
-
-**Option A: Have them sign in first**
-1. Ask the admin user to visit your site at `/#/admin/login`
-2. They will see an "Access denied" error
-3. Check the browser console or Firebase Console → **Authentication** → **Users**
-4. Copy their UID
-5. Add them to the `admins` collection as described above
-
-**Option B: Create auth user manually**
-1. Go to Firebase Console → **Authentication** → **Users**
-2. Click **Add user**
-3. Enter their email (password not needed since they'll use Google Sign-In)
-4. Copy the generated UID
-5. Add them to the `admins` collection with that UID
+**Important:** Both Google Sign-In and Email/Password users must be added to the `admins` collection in Firestore. The authentication method just determines how they log in - authorization is always checked against Firestore.
 
 ## Step 4: Security Rules (Already Deployed)
 
@@ -66,10 +83,26 @@ The Firestore security rules have been deployed. They ensure:
 
 ## Step 5: Test Admin Access
 
+### Testing Google Sign-In
 1. Go to `https://drapp-426.vercel.app/#/admin/login`
-2. Click **Sign in with Google**
-3. Use an email that's been added to the `admins` collection
-4. You should be redirected to `/admin/dashboard`
+2. Ensure "Google Sign-In" tab is selected (default)
+3. Click **Sign in with Google**
+4. Use an email that's been added to the `admins` collection
+5. You should be redirected to `/admin/dashboard`
+
+### Testing Email/Password Login
+1. Go to `https://drapp-426.vercel.app/#/admin/login`
+2. Click the "Email / Password" tab
+3. Enter the email and password
+4. Click **Sign In**
+5. You should be redirected to `/admin/dashboard`
+
+### Switching Between Login Methods
+The admin login page has two tabs at the top:
+- **Google Sign-In**: For admins using their Google accounts
+- **Email / Password**: For external admins with email/password credentials
+
+Users can freely switch between tabs to choose their preferred login method.
 
 ## Admin Dashboard Features
 
