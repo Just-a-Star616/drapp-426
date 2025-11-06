@@ -167,10 +167,11 @@ const App: React.FC = () => {
       <div className="min-h-screen bg-slate-900 text-white flex items-center justify-center p-4">
         <HashRouter>
           <Routes>
-            <Route path="/home" element={!isAuthenticated ? <Home /> : (hasIncompleteApplication ? <Navigate to="/apply" /> : <Navigate to="/status" />)} />
-            {/* Allow apply route if user has incomplete application */}
+            {/* Always allow access to home page */}
+            <Route path="/home" element={<Home />} />
+            {/* Allow apply route if not authenticated or has incomplete application */}
             <Route path="/apply" element={!isAuthenticated || hasIncompleteApplication ? <ApplyWizard /> : <Navigate to="/status" />} />
-            <Route path="/login" element={!isAuthenticated ? <Login /> : (hasIncompleteApplication ? <Navigate to="/apply" /> : <Navigate to="/status" />)} />
+            <Route path="/login" element={<Login />} />
             <Route path="/forgot-password" element={<ForgotPassword />} />
             <Route path="/reset-password" element={<ResetPassword />} />
             <Route path="/confirmation" element={isAuthenticated ? <ApplicationConfirmation /> : <Navigate to="/login" />} />
