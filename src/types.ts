@@ -44,6 +44,7 @@ export interface Application {
   issuingCouncil?: string;
   drivingLicenseNumber?: string;
   licenseExpiry?: string;
+  dbsCheckNumber?: string; // DBS check number for validation by companies/councils
 
   // Vehicle ownership
   hasOwnVehicle?: boolean; // true = own vehicle, false = fleet/no vehicle

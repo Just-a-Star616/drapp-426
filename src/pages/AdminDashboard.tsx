@@ -240,7 +240,20 @@ const AdminDashboard: React.FC = () => {
                         {app.isLicensedDriver ? (
                           <span className="text-green-400">✓ Yes</span>
                         ) : (
-                          <span className="text-slate-400">No</span>
+                          <div>
+                            <span className="text-slate-400">Licensing</span>
+                            {app.unlicensedProgress && (
+                              <div className="text-xs text-cyan-400 mt-1">
+                                {[
+                                  app.unlicensedProgress.eligibilityChecked,
+                                  app.unlicensedProgress.dbsApplied,
+                                  app.unlicensedProgress.medicalBooked,
+                                  app.unlicensedProgress.knowledgeTestPassed,
+                                  app.unlicensedProgress.councilApplicationSubmitted
+                                ].filter(Boolean).length}/5 steps
+                              </div>
+                            )}
+                          </div>
                         )}
                       </td>
                       <td className="px-4 py-4 text-sm">
@@ -327,6 +340,165 @@ const AdminDashboard: React.FC = () => {
                 </div>
               </div>
 
+              {/* Unlicensed Driver Progress */}
+              {!selectedApplication.isLicensedDriver && selectedApplication.unlicensedProgress && (
+                <div className="mb-6 p-4 bg-slate-800/50 rounded-lg">
+                  <h3 className="font-semibold text-white mb-3">Licensing Progress</h3>
+                  <p className="text-sm text-slate-400 mb-4">
+                    This applicant is working towards obtaining their taxi/PHV driver license.
+                  </p>
+
+                  {/* Progress Steps */}
+                  <div className="space-y-3 mb-4">
+                    {/* Step 1: Eligibility */}
+                    <div className={`p-3 rounded-lg border ${selectedApplication.unlicensedProgress.eligibilityChecked ? 'bg-green-900/20 border-green-700' : 'bg-slate-900/50 border-sky-800'}`}>
+                      <div className="flex items-center gap-3">
+                        {selectedApplication.unlicensedProgress.eligibilityChecked ? (
+                          <svg className="h-5 w-5 text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        ) : (
+                          <svg className="h-5 w-5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        )}
+                        <span className="text-white text-sm font-medium">1. Eligibility Check</span>
+                      </div>
+                    </div>
+
+                    {/* Step 2: DBS */}
+                    <div className={`p-3 rounded-lg border ${selectedApplication.unlicensedProgress.dbsApplied ? 'bg-green-900/20 border-green-700' : 'bg-slate-900/50 border-sky-800'}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {selectedApplication.unlicensedProgress.dbsApplied ? (
+                            <svg className="h-5 w-5 text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          ) : (
+                            <svg className="h-5 w-5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          )}
+                          <span className="text-white text-sm font-medium">2. Enhanced DBS Check</span>
+                        </div>
+                        {selectedApplication.unlicensedProgress.dbsDocumentUrl && (
+                          <a
+                            href={selectedApplication.unlicensedProgress.dbsDocumentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-cyan-900/50 text-cyan-300 rounded text-xs hover:bg-cyan-800/50"
+                          >
+                            View Document
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Step 3: Medical */}
+                    <div className={`p-3 rounded-lg border ${selectedApplication.unlicensedProgress.medicalBooked ? 'bg-green-900/20 border-green-700' : 'bg-slate-900/50 border-sky-800'}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {selectedApplication.unlicensedProgress.medicalBooked ? (
+                            <svg className="h-5 w-5 text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          ) : (
+                            <svg className="h-5 w-5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          )}
+                          <span className="text-white text-sm font-medium">3. Medical Examination</span>
+                        </div>
+                        {selectedApplication.unlicensedProgress.medicalDocumentUrl && (
+                          <a
+                            href={selectedApplication.unlicensedProgress.medicalDocumentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-cyan-900/50 text-cyan-300 rounded text-xs hover:bg-cyan-800/50"
+                          >
+                            View Document
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Step 4: Knowledge Test */}
+                    <div className={`p-3 rounded-lg border ${selectedApplication.unlicensedProgress.knowledgeTestPassed ? 'bg-green-900/20 border-green-700' : 'bg-slate-900/50 border-sky-800'}`}>
+                      <div className="flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          {selectedApplication.unlicensedProgress.knowledgeTestPassed ? (
+                            <svg className="h-5 w-5 text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          ) : (
+                            <svg className="h-5 w-5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                          )}
+                          <span className="text-white text-sm font-medium">4. Knowledge & Safeguarding Test</span>
+                        </div>
+                        {selectedApplication.unlicensedProgress.knowledgeTestDocumentUrl && (
+                          <a
+                            href={selectedApplication.unlicensedProgress.knowledgeTestDocumentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-cyan-900/50 text-cyan-300 rounded text-xs hover:bg-cyan-800/50"
+                          >
+                            View Certificate
+                          </a>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* Step 5: Council Application */}
+                    <div className={`p-3 rounded-lg border ${selectedApplication.unlicensedProgress.councilApplicationSubmitted ? 'bg-green-900/20 border-green-700' : 'bg-slate-900/50 border-sky-800'}`}>
+                      <div className="flex items-center gap-3">
+                        {selectedApplication.unlicensedProgress.councilApplicationSubmitted ? (
+                          <svg className="h-5 w-5 text-green-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        ) : (
+                          <svg className="h-5 w-5 text-slate-400 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+                          </svg>
+                        )}
+                        <span className="text-white text-sm font-medium">5. Council Application Submitted</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Progress Summary */}
+                  <div className="mt-4 p-3 bg-cyan-900/30 rounded-lg border border-cyan-700">
+                    <div className="flex justify-between items-center mb-2">
+                      <span className="text-white text-sm font-medium">Overall Progress</span>
+                      <span className="text-cyan-400 font-bold text-sm">
+                        {[
+                          selectedApplication.unlicensedProgress.eligibilityChecked,
+                          selectedApplication.unlicensedProgress.dbsApplied,
+                          selectedApplication.unlicensedProgress.medicalBooked,
+                          selectedApplication.unlicensedProgress.knowledgeTestPassed,
+                          selectedApplication.unlicensedProgress.councilApplicationSubmitted
+                        ].filter(Boolean).length} / 5 Complete
+                      </span>
+                    </div>
+                    <div className="w-full bg-slate-700 rounded-full h-2">
+                      <div
+                        className="bg-gradient-to-r from-cyan-500 to-sky-500 h-2 rounded-full transition-all duration-500"
+                        style={{
+                          width: `${(([
+                            selectedApplication.unlicensedProgress.eligibilityChecked,
+                            selectedApplication.unlicensedProgress.dbsApplied,
+                            selectedApplication.unlicensedProgress.medicalBooked,
+                            selectedApplication.unlicensedProgress.knowledgeTestPassed,
+                            selectedApplication.unlicensedProgress.councilApplicationSubmitted
+                          ].filter(Boolean).length) / 5) * 100}%`
+                        }}
+                      />
+                    </div>
+                  </div>
+                </div>
+              )}
+
               {/* License Details */}
               {selectedApplication.isLicensedDriver && (
                 <div className="mb-6 p-4 bg-slate-800/50 rounded-lg">
@@ -349,6 +521,10 @@ const AdminDashboard: React.FC = () => {
                       <span className="ml-2 text-white">{selectedApplication.drivingLicenseNumber || 'N/A'}</span>
                     </div>
                     <div>
+                      <span className="text-slate-400">DBS Check Number:</span>
+                      <span className="ml-2 text-white">{selectedApplication.dbsCheckNumber || 'N/A'}</span>
+                    </div>
+                    <div>
                       <span className="text-slate-400">Vehicle:</span>
                       <span className="ml-2 text-white">
                         {selectedApplication.vehicleMake} {selectedApplication.vehicleModel} ({selectedApplication.vehicleReg || 'N/A'})
@@ -363,7 +539,9 @@ const AdminDashboard: React.FC = () => {
                   {/* Documents */}
                   {(selectedApplication.documents?.badgeDocumentUrl ||
                     selectedApplication.documents?.drivingLicenseDocumentUrl ||
-                    selectedApplication.documents?.insuranceDocumentUrl) && (
+                    selectedApplication.documents?.insuranceDocumentUrl ||
+                    selectedApplication.documents?.v5cDocumentUrl ||
+                    selectedApplication.documents?.phvLicenceDocumentUrl) && (
                     <div className="mt-4">
                       <h4 className="text-sm font-medium text-slate-300 mb-2">Documents:</h4>
                       <div className="flex gap-2 flex-wrap">
@@ -395,6 +573,26 @@ const AdminDashboard: React.FC = () => {
                             className="px-3 py-1 bg-cyan-900/50 text-cyan-300 rounded text-xs hover:bg-cyan-800/50"
                           >
                             Insurance
+                          </a>
+                        )}
+                        {selectedApplication.documents.v5cDocumentUrl && (
+                          <a
+                            href={selectedApplication.documents.v5cDocumentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 bg-cyan-900/50 text-cyan-300 rounded text-xs hover:bg-cyan-800/50"
+                          >
+                            V5C Logbook
+                          </a>
+                        )}
+                        {selectedApplication.documents.phvLicenceDocumentUrl && (
+                          <a
+                            href={selectedApplication.documents.phvLicenceDocumentUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-3 py-1 bg-cyan-900/50 text-cyan-300 rounded text-xs hover:bg-cyan-800/50"
+                          >
+                            PHV Licence
                           </a>
                         )}
                       </div>
