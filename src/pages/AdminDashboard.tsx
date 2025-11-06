@@ -96,6 +96,10 @@ const AdminDashboard: React.FC = () => {
       issuingCouncil: selectedApplication.issuingCouncil,
       drivingLicenseNumber: selectedApplication.drivingLicenseNumber,
       licenseExpiry: selectedApplication.licenseExpiry,
+      vehicleMake: selectedApplication.vehicleMake,
+      vehicleModel: selectedApplication.vehicleModel,
+      vehicleReg: selectedApplication.vehicleReg,
+      insuranceExpiry: selectedApplication.insuranceExpiry,
     });
     setIsEditingApplication(true);
   };
@@ -152,6 +156,24 @@ const AdminDashboard: React.FC = () => {
         if (editedDetails.licenseExpiry !== selectedApplication.licenseExpiry) {
           updates.licenseExpiry = editedDetails.licenseExpiry;
           changedFields.push(`License Expiry: "${selectedApplication.licenseExpiry || 'N/A'}" → "${editedDetails.licenseExpiry}"`);
+        }
+
+        // Vehicle details
+        if (editedDetails.vehicleMake !== selectedApplication.vehicleMake) {
+          updates.vehicleMake = editedDetails.vehicleMake;
+          changedFields.push(`Vehicle Make: "${selectedApplication.vehicleMake || 'N/A'}" → "${editedDetails.vehicleMake}"`);
+        }
+        if (editedDetails.vehicleModel !== selectedApplication.vehicleModel) {
+          updates.vehicleModel = editedDetails.vehicleModel;
+          changedFields.push(`Vehicle Model: "${selectedApplication.vehicleModel || 'N/A'}" → "${editedDetails.vehicleModel}"`);
+        }
+        if (editedDetails.vehicleReg !== selectedApplication.vehicleReg) {
+          updates.vehicleReg = editedDetails.vehicleReg;
+          changedFields.push(`Vehicle Reg: "${selectedApplication.vehicleReg || 'N/A'}" → "${editedDetails.vehicleReg}"`);
+        }
+        if (editedDetails.insuranceExpiry !== selectedApplication.insuranceExpiry) {
+          updates.insuranceExpiry = editedDetails.insuranceExpiry;
+          changedFields.push(`Insurance Expiry: "${selectedApplication.insuranceExpiry || 'N/A'}" → "${editedDetails.insuranceExpiry}"`);
         }
       }
 
@@ -727,23 +749,59 @@ const AdminDashboard: React.FC = () => {
                         {selectedApplication.hasOwnVehicle === true ? 'Own Vehicle' : selectedApplication.hasOwnVehicle === false ? 'Fleet Vehicle' : 'Not Specified'}
                       </span>
                     </div>
-                    {selectedApplication.vehicleMake && selectedApplication.vehicleModel && (
+                    {(selectedApplication.vehicleMake || selectedApplication.vehicleModel || isEditingApplication) && (
                       <>
                         <div>
                           <span className="text-slate-400">Vehicle Make:</span>
-                          <span className="ml-2 text-white">{selectedApplication.vehicleMake}</span>
+                          {isEditingApplication ? (
+                            <input
+                              type="text"
+                              value={editedDetails.vehicleMake || ''}
+                              onChange={(e) => setEditedDetails({ ...editedDetails, vehicleMake: e.target.value })}
+                              className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                            />
+                          ) : (
+                            <span className="ml-2 text-white">{selectedApplication.vehicleMake}</span>
+                          )}
                         </div>
                         <div>
                           <span className="text-slate-400">Vehicle Model:</span>
-                          <span className="ml-2 text-white">{selectedApplication.vehicleModel}</span>
+                          {isEditingApplication ? (
+                            <input
+                              type="text"
+                              value={editedDetails.vehicleModel || ''}
+                              onChange={(e) => setEditedDetails({ ...editedDetails, vehicleModel: e.target.value })}
+                              className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                            />
+                          ) : (
+                            <span className="ml-2 text-white">{selectedApplication.vehicleModel}</span>
+                          )}
                         </div>
                         <div>
                           <span className="text-slate-400">Vehicle Registration:</span>
-                          <span className="ml-2 text-white">{selectedApplication.vehicleReg || 'N/A'}</span>
+                          {isEditingApplication ? (
+                            <input
+                              type="text"
+                              value={editedDetails.vehicleReg || ''}
+                              onChange={(e) => setEditedDetails({ ...editedDetails, vehicleReg: e.target.value.toUpperCase() })}
+                              className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                            />
+                          ) : (
+                            <span className="ml-2 text-white">{selectedApplication.vehicleReg || 'N/A'}</span>
+                          )}
                         </div>
                         <div>
                           <span className="text-slate-400">Insurance Expiry:</span>
-                          <span className="ml-2 text-white">{selectedApplication.insuranceExpiry || 'N/A'}</span>
+                          {isEditingApplication ? (
+                            <input
+                              type="date"
+                              value={editedDetails.insuranceExpiry || ''}
+                              onChange={(e) => setEditedDetails({ ...editedDetails, insuranceExpiry: e.target.value })}
+                              className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                            />
+                          ) : (
+                            <span className="ml-2 text-white">{selectedApplication.insuranceExpiry || 'N/A'}</span>
+                          )}
                         </div>
                       </>
                     )}
@@ -872,23 +930,59 @@ const AdminDashboard: React.FC = () => {
                         {selectedApplication.hasOwnVehicle === true ? 'Own Vehicle' : selectedApplication.hasOwnVehicle === false ? 'Fleet Vehicle' : 'Not Specified'}
                       </span>
                     </div>
-                    {selectedApplication.vehicleMake && selectedApplication.vehicleModel && (
+                    {(selectedApplication.vehicleMake || selectedApplication.vehicleModel || isEditingApplication) && (
                       <>
                         <div>
                           <span className="text-slate-400">Vehicle Make:</span>
-                          <span className="ml-2 text-white">{selectedApplication.vehicleMake}</span>
+                          {isEditingApplication ? (
+                            <input
+                              type="text"
+                              value={editedDetails.vehicleMake || ''}
+                              onChange={(e) => setEditedDetails({ ...editedDetails, vehicleMake: e.target.value })}
+                              className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                            />
+                          ) : (
+                            <span className="ml-2 text-white">{selectedApplication.vehicleMake}</span>
+                          )}
                         </div>
                         <div>
                           <span className="text-slate-400">Vehicle Model:</span>
-                          <span className="ml-2 text-white">{selectedApplication.vehicleModel}</span>
+                          {isEditingApplication ? (
+                            <input
+                              type="text"
+                              value={editedDetails.vehicleModel || ''}
+                              onChange={(e) => setEditedDetails({ ...editedDetails, vehicleModel: e.target.value })}
+                              className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                            />
+                          ) : (
+                            <span className="ml-2 text-white">{selectedApplication.vehicleModel}</span>
+                          )}
                         </div>
                         <div>
                           <span className="text-slate-400">Vehicle Registration:</span>
-                          <span className="ml-2 text-white">{selectedApplication.vehicleReg || 'N/A'}</span>
+                          {isEditingApplication ? (
+                            <input
+                              type="text"
+                              value={editedDetails.vehicleReg || ''}
+                              onChange={(e) => setEditedDetails({ ...editedDetails, vehicleReg: e.target.value.toUpperCase() })}
+                              className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                            />
+                          ) : (
+                            <span className="ml-2 text-white">{selectedApplication.vehicleReg || 'N/A'}</span>
+                          )}
                         </div>
                         <div>
                           <span className="text-slate-400">Insurance Expiry:</span>
-                          <span className="ml-2 text-white">{selectedApplication.insuranceExpiry || 'N/A'}</span>
+                          {isEditingApplication ? (
+                            <input
+                              type="date"
+                              value={editedDetails.insuranceExpiry || ''}
+                              onChange={(e) => setEditedDetails({ ...editedDetails, insuranceExpiry: e.target.value })}
+                              className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                            />
+                          ) : (
+                            <span className="ml-2 text-white">{selectedApplication.insuranceExpiry || 'N/A'}</span>
+                          )}
                         </div>
                       </>
                     )}

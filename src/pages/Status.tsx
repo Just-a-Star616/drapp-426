@@ -79,6 +79,10 @@ const Status = () => {
   const [editedIssuingCouncil, setEditedIssuingCouncil] = useState(application?.issuingCouncil || '');
   const [editedDrivingLicenseNumber, setEditedDrivingLicenseNumber] = useState(application?.drivingLicenseNumber || '');
   const [editedLicenseExpiry, setEditedLicenseExpiry] = useState(application?.licenseExpiry || '');
+  const [editedVehicleMake, setEditedVehicleMake] = useState(application?.vehicleMake || '');
+  const [editedVehicleModel, setEditedVehicleModel] = useState(application?.vehicleModel || '');
+  const [editedVehicleReg, setEditedVehicleReg] = useState(application?.vehicleReg || '');
+  const [editedInsuranceExpiry, setEditedInsuranceExpiry] = useState(application?.insuranceExpiry || '');
 
   const handleLogout = async () => {
     await signOut(auth);
@@ -136,6 +140,24 @@ const Status = () => {
           updates.licenseExpiry = editedLicenseExpiry;
           changedFields.push(`License Expiry: "${application.licenseExpiry || 'N/A'}" → "${editedLicenseExpiry}"`);
         }
+
+        // Check vehicle details
+        if (editedVehicleMake !== (application.vehicleMake || '')) {
+          updates.vehicleMake = editedVehicleMake;
+          changedFields.push(`Vehicle Make: "${application.vehicleMake || 'N/A'}" → "${editedVehicleMake}"`);
+        }
+        if (editedVehicleModel !== (application.vehicleModel || '')) {
+          updates.vehicleModel = editedVehicleModel;
+          changedFields.push(`Vehicle Model: "${application.vehicleModel || 'N/A'}" → "${editedVehicleModel}"`);
+        }
+        if (editedVehicleReg !== (application.vehicleReg || '')) {
+          updates.vehicleReg = editedVehicleReg.toUpperCase();
+          changedFields.push(`Vehicle Reg: "${application.vehicleReg || 'N/A'}" → "${editedVehicleReg.toUpperCase()}"`);
+        }
+        if (editedInsuranceExpiry !== (application.insuranceExpiry || '')) {
+          updates.insuranceExpiry = editedInsuranceExpiry;
+          changedFields.push(`Insurance Expiry: "${application.insuranceExpiry || 'N/A'}" → "${editedInsuranceExpiry}"`);
+        }
       }
 
       if (Object.keys(updates).length > 0) {
@@ -184,6 +206,10 @@ const Status = () => {
     setEditedIssuingCouncil(application?.issuingCouncil || '');
     setEditedDrivingLicenseNumber(application?.drivingLicenseNumber || '');
     setEditedLicenseExpiry(application?.licenseExpiry || '');
+    setEditedVehicleMake(application?.vehicleMake || '');
+    setEditedVehicleModel(application?.vehicleModel || '');
+    setEditedVehicleReg(application?.vehicleReg || '');
+    setEditedInsuranceExpiry(application?.insuranceExpiry || '');
     setIsEditingDetails(false);
   };
 
@@ -840,10 +866,35 @@ const Status = () => {
                                 type="date"
                             />
                             <div className="h-px bg-sky-800 my-4"></div>
-                            <InfoRow label="Vehicle Make" value={application.vehicleMake} />
-                            <InfoRow label="Vehicle Model" value={application.vehicleModel} />
-                            <InfoRow label="Vehicle Reg" value={application.vehicleReg} />
-                             <InfoRow label="Insurance Expiry" value={application.insuranceExpiry} />
+                            <InfoRow
+                                label="Vehicle Make"
+                                value={application.vehicleMake}
+                                isEditing={isEditingDetails}
+                                editValue={editedVehicleMake}
+                                onEditChange={setEditedVehicleMake}
+                            />
+                            <InfoRow
+                                label="Vehicle Model"
+                                value={application.vehicleModel}
+                                isEditing={isEditingDetails}
+                                editValue={editedVehicleModel}
+                                onEditChange={setEditedVehicleModel}
+                            />
+                            <InfoRow
+                                label="Vehicle Reg"
+                                value={application.vehicleReg}
+                                isEditing={isEditingDetails}
+                                editValue={editedVehicleReg}
+                                onEditChange={(value) => setEditedVehicleReg(value.toUpperCase())}
+                            />
+                             <InfoRow
+                                label="Insurance Expiry"
+                                value={application.insuranceExpiry}
+                                isEditing={isEditingDetails}
+                                editValue={editedInsuranceExpiry}
+                                onEditChange={setEditedInsuranceExpiry}
+                                type="date"
+                            />
                             <div className="h-px bg-sky-800 my-4"></div>
                             <h3 className="text-sm font-semibold text-white mb-3 mt-6">Uploaded Documents</h3>
                             <DocumentPreview label="Badge Document" url={application.documents?.badgeDocumentUrl} />
