@@ -189,8 +189,17 @@ const ApplyWizard: React.FC = () => {
       if (!formData.email.trim()) newErrors.email = 'Email is required';
       if (!formData.phone.trim()) newErrors.phone = 'Phone number is required';
       if (!formData.area.trim()) newErrors.area = 'Area is required';
-      if (!formData.password) newErrors.password = 'Password is required';
-      if (!passwordValidation.isValid) newErrors.password = 'Password does not meet requirements';
+      if (!formData.password) {
+        newErrors.password = 'Password is required';
+      } else if (!passwordValidation.isValid) {
+        // Debug logging
+        console.log('Password validation failed:', {
+          password: formData.password,
+          validation: passwordValidation,
+          length: formData.password.length,
+        });
+        newErrors.password = 'Password does not meet requirements';
+      }
       if (formData.password !== formData.confirmPassword) {
         newErrors.confirmPassword = 'Passwords do not match';
       }
