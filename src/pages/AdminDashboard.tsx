@@ -24,6 +24,10 @@ const AdminDashboard: React.FC = () => {
   const [showNotificationModal, setShowNotificationModal] = useState(false);
   const [selectedForNotification, setSelectedForNotification] = useState<Application[]>([]);
 
+  // Edit mode state
+  const [isEditingApplication, setIsEditingApplication] = useState(false);
+  const [editedDetails, setEditedDetails] = useState<Partial<Application>>({});
+
   // Fetch applications in real-time
   useEffect(() => {
     const q = query(
@@ -78,6 +82,109 @@ const AdminDashboard: React.FC = () => {
   const handleLogout = async () => {
     await signOut(auth);
     navigate('/admin/login');
+  };
+
+  const handleStartEdit = () => {
+    if (!selectedApplication) return;
+    setEditedDetails({
+      firstName: selectedApplication.firstName,
+      lastName: selectedApplication.lastName,
+      phone: selectedApplication.phone,
+      area: selectedApplication.area,
+      badgeNumber: selectedApplication.badgeNumber,
+      badgeExpiry: selectedApplication.badgeExpiry,
+      issuingCouncil: selectedApplication.issuingCouncil,
+      drivingLicenseNumber: selectedApplication.drivingLicenseNumber,
+      licenseExpiry: selectedApplication.licenseExpiry,
+    });
+    setIsEditingApplication(true);
+  };
+
+  const handleCancelEdit = () => {
+    setIsEditingApplication(false);
+    setEditedDetails({});
+  };
+
+  const handleSaveEdit = async () => {
+    if (!selectedApplication) return;
+
+    setIsUpdating(true);
+    try {
+      const updates: any = {};
+      const changedFields: string[] = [];
+
+      // Compare and track changes
+      if (editedDetails.firstName !== selectedApplication.firstName) {
+        updates.firstName = editedDetails.firstName;
+        changedFields.push(`First Name: "${selectedApplication.firstName}" → "${editedDetails.firstName}"`);
+      }
+      if (editedDetails.lastName !== selectedApplication.lastName) {
+        updates.lastName = editedDetails.lastName;
+        changedFields.push(`Last Name: "${selectedApplication.lastName}" → "${editedDetails.lastName}"`);
+      }
+      if (editedDetails.phone !== selectedApplication.phone) {
+        updates.phone = editedDetails.phone;
+        changedFields.push(`Phone: "${selectedApplication.phone}" → "${editedDetails.phone}"`);
+      }
+      if (editedDetails.area !== selectedApplication.area) {
+        updates.area = editedDetails.area;
+        changedFields.push(`Area: "${selectedApplication.area}" → "${editedDetails.area}"`);
+      }
+
+      // Licensed driver fields
+      if (selectedApplication.isLicensedDriver) {
+        if (editedDetails.badgeNumber !== selectedApplication.badgeNumber) {
+          updates.badgeNumber = editedDetails.badgeNumber;
+          changedFields.push(`Badge Number: "${selectedApplication.badgeNumber || 'N/A'}" → "${editedDetails.badgeNumber}"`);
+        }
+        if (editedDetails.badgeExpiry !== selectedApplication.badgeExpiry) {
+          updates.badgeExpiry = editedDetails.badgeExpiry;
+          changedFields.push(`Badge Expiry: "${selectedApplication.badgeExpiry || 'N/A'}" → "${editedDetails.badgeExpiry}"`);
+        }
+        if (editedDetails.issuingCouncil !== selectedApplication.issuingCouncil) {
+          updates.issuingCouncil = editedDetails.issuingCouncil;
+          changedFields.push(`Issuing Council: "${selectedApplication.issuingCouncil || 'N/A'}" → "${editedDetails.issuingCouncil}"`);
+        }
+        if (editedDetails.drivingLicenseNumber !== selectedApplication.drivingLicenseNumber) {
+          updates.drivingLicenseNumber = editedDetails.drivingLicenseNumber;
+          changedFields.push(`License Number: "${selectedApplication.drivingLicenseNumber || 'N/A'}" → "${editedDetails.drivingLicenseNumber}"`);
+        }
+        if (editedDetails.licenseExpiry !== selectedApplication.licenseExpiry) {
+          updates.licenseExpiry = editedDetails.licenseExpiry;
+          changedFields.push(`License Expiry: "${selectedApplication.licenseExpiry || 'N/A'}" → "${editedDetails.licenseExpiry}"`);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await updateDoc(doc(db, 'applications', selectedApplication.id), updates);
+
+        // Log the activity
+        if (auth.currentUser) {
+          await logActivity({
+            applicationId: selectedApplication.id,
+            applicantName: `${selectedApplication.firstName} ${selectedApplication.lastName}`,
+            applicantEmail: selectedApplication.email,
+            activityType: ActivityType.InformationUpdated,
+            actor: ActivityActor.Staff,
+            actorId: auth.currentUser.uid,
+            actorName: auth.currentUser.email || 'Admin Staff',
+            details: `Staff updated applicant details: ${changedFields.join(', ')}`,
+            metadata: {
+              changedFields: changedFields,
+              fieldsCount: changedFields.length,
+            },
+          });
+        }
+
+        setIsEditingApplication(false);
+        setEditedDetails({});
+      }
+    } catch (error) {
+      console.error('Error saving edits:', error);
+      alert('Failed to save changes. Please try again.');
+    } finally {
+      setIsUpdating(false);
+    }
   };
 
   const handleStatusUpdate = async (applicationId: string, newStatus: ApplicationStatus) => {
@@ -349,21 +456,99 @@ const AdminDashboard: React.FC = () => {
                 </button>
               </div>
 
+              {/* Edit Button Row */}
+              {!isEditingApplication && (
+                <div className="mb-4">
+                  <button
+                    onClick={handleStartEdit}
+                    className="px-4 py-2 bg-cyan-900/50 text-cyan-300 hover:bg-cyan-800/50 rounded-lg text-sm font-medium transition-colors flex items-center gap-2"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                    </svg>
+                    Edit Applicant Details
+                  </button>
+                </div>
+              )}
+
+              {isEditingApplication && (
+                <div className="mb-4 flex gap-2">
+                  <button
+                    onClick={handleCancelEdit}
+                    className="px-4 py-2 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded-lg text-sm font-medium transition-colors"
+                    disabled={isUpdating}
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    onClick={handleSaveEdit}
+                    className="px-4 py-2 bg-cyan-600 text-white hover:bg-cyan-700 rounded-lg text-sm font-medium transition-colors"
+                    disabled={isUpdating}
+                  >
+                    {isUpdating ? 'Saving...' : 'Save Changes'}
+                  </button>
+                </div>
+              )}
+
               {/* Contact Info */}
               <div className="mb-6 p-4 bg-slate-800/50 rounded-lg">
                 <h3 className="font-semibold text-white mb-3">Contact Information</h3>
                 <div className="grid grid-cols-2 gap-4 text-sm">
+                  <div>
+                    <span className="text-slate-400">First Name:</span>
+                    {isEditingApplication ? (
+                      <input
+                        type="text"
+                        value={editedDetails.firstName || ''}
+                        onChange={(e) => setEditedDetails({ ...editedDetails, firstName: e.target.value })}
+                        className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                      />
+                    ) : (
+                      <span className="ml-2 text-white">{selectedApplication.firstName}</span>
+                    )}
+                  </div>
+                  <div>
+                    <span className="text-slate-400">Last Name:</span>
+                    {isEditingApplication ? (
+                      <input
+                        type="text"
+                        value={editedDetails.lastName || ''}
+                        onChange={(e) => setEditedDetails({ ...editedDetails, lastName: e.target.value })}
+                        className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                      />
+                    ) : (
+                      <span className="ml-2 text-white">{selectedApplication.lastName}</span>
+                    )}
+                  </div>
                   <div>
                     <span className="text-slate-400">Email:</span>
                     <span className="ml-2 text-white">{selectedApplication.email}</span>
                   </div>
                   <div>
                     <span className="text-slate-400">Phone:</span>
-                    <span className="ml-2 text-white">{selectedApplication.phone}</span>
+                    {isEditingApplication ? (
+                      <input
+                        type="tel"
+                        value={editedDetails.phone || ''}
+                        onChange={(e) => setEditedDetails({ ...editedDetails, phone: e.target.value })}
+                        className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                      />
+                    ) : (
+                      <span className="ml-2 text-white">{selectedApplication.phone}</span>
+                    )}
                   </div>
                   <div>
                     <span className="text-slate-400">Area:</span>
-                    <span className="ml-2 text-white">{selectedApplication.area}</span>
+                    {isEditingApplication ? (
+                      <input
+                        type="text"
+                        value={editedDetails.area || ''}
+                        onChange={(e) => setEditedDetails({ ...editedDetails, area: e.target.value })}
+                        className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                      />
+                    ) : (
+                      <span className="ml-2 text-white">{selectedApplication.area}</span>
+                    )}
                   </div>
                   <div>
                     <span className="text-slate-400">Applied:</span>
@@ -614,23 +799,68 @@ const AdminDashboard: React.FC = () => {
                   <div className="grid grid-cols-2 gap-4 text-sm">
                     <div>
                       <span className="text-slate-400">Badge Number:</span>
-                      <span className="ml-2 text-white">{selectedApplication.badgeNumber || 'N/A'}</span>
+                      {isEditingApplication ? (
+                        <input
+                          type="text"
+                          value={editedDetails.badgeNumber || ''}
+                          onChange={(e) => setEditedDetails({ ...editedDetails, badgeNumber: e.target.value })}
+                          className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                        />
+                      ) : (
+                        <span className="ml-2 text-white">{selectedApplication.badgeNumber || 'N/A'}</span>
+                      )}
                     </div>
                     <div>
                       <span className="text-slate-400">Badge Expiry:</span>
-                      <span className="ml-2 text-white">{selectedApplication.badgeExpiry || 'N/A'}</span>
+                      {isEditingApplication ? (
+                        <input
+                          type="date"
+                          value={editedDetails.badgeExpiry || ''}
+                          onChange={(e) => setEditedDetails({ ...editedDetails, badgeExpiry: e.target.value })}
+                          className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                        />
+                      ) : (
+                        <span className="ml-2 text-white">{selectedApplication.badgeExpiry || 'N/A'}</span>
+                      )}
                     </div>
                     <div>
                       <span className="text-slate-400">Issuing Council:</span>
-                      <span className="ml-2 text-white">{selectedApplication.issuingCouncil || 'N/A'}</span>
+                      {isEditingApplication ? (
+                        <input
+                          type="text"
+                          value={editedDetails.issuingCouncil || ''}
+                          onChange={(e) => setEditedDetails({ ...editedDetails, issuingCouncil: e.target.value })}
+                          className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                        />
+                      ) : (
+                        <span className="ml-2 text-white">{selectedApplication.issuingCouncil || 'N/A'}</span>
+                      )}
                     </div>
                     <div>
                       <span className="text-slate-400">Driving License No.:</span>
-                      <span className="ml-2 text-white">{selectedApplication.drivingLicenseNumber || 'N/A'}</span>
+                      {isEditingApplication ? (
+                        <input
+                          type="text"
+                          value={editedDetails.drivingLicenseNumber || ''}
+                          onChange={(e) => setEditedDetails({ ...editedDetails, drivingLicenseNumber: e.target.value })}
+                          className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                        />
+                      ) : (
+                        <span className="ml-2 text-white">{selectedApplication.drivingLicenseNumber || 'N/A'}</span>
+                      )}
                     </div>
                     <div>
                       <span className="text-slate-400">License Expiry:</span>
-                      <span className="ml-2 text-white">{selectedApplication.licenseExpiry || 'N/A'}</span>
+                      {isEditingApplication ? (
+                        <input
+                          type="date"
+                          value={editedDetails.licenseExpiry || ''}
+                          onChange={(e) => setEditedDetails({ ...editedDetails, licenseExpiry: e.target.value })}
+                          className="ml-2 px-2 py-1 rounded bg-slate-700 text-white border border-slate-600 focus:border-cyan-500 w-full mt-1"
+                        />
+                      ) : (
+                        <span className="ml-2 text-white">{selectedApplication.licenseExpiry || 'N/A'}</span>
+                      )}
                     </div>
                     <div>
                       <span className="text-slate-400">DBS Check Number:</span>

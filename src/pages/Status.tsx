@@ -14,13 +14,30 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { logActivity } from '../services/activityLog';
 import { ActivityType, ActivityActor } from '../types';
 
-const InfoRow: React.FC<{ label: string, value?: string, children?: React.ReactNode }> = ({ label, value, children }) => {
-    if (!value && !children) return null;
+const InfoRow: React.FC<{
+  label: string,
+  value?: string,
+  children?: React.ReactNode,
+  isEditing?: boolean,
+  editValue?: string,
+  onEditChange?: (value: string) => void,
+  type?: string
+}> = ({ label, value, children, isEditing, editValue, onEditChange, type = 'text' }) => {
+    if (!value && !children && !isEditing) return null;
     return (
         <div className="grid grid-cols-3 gap-4 py-3 border-b border-sky-800">
             <dt className="text-sm font-medium text-slate-400">{label}</dt>
             <dd className="col-span-2 text-sm text-white">
-                {children || value || <span className="text-slate-500">N/A</span>}
+                {isEditing && onEditChange ? (
+                    <input
+                        type={type}
+                        value={editValue || ''}
+                        onChange={(e) => onEditChange(e.target.value)}
+                        className="w-full px-3 py-1.5 rounded bg-slate-800 text-white border border-slate-600 focus:border-cyan-500 focus:ring-1 focus:ring-cyan-500"
+                    />
+                ) : (
+                    children || value || <span className="text-slate-500">N/A</span>
+                )}
             </dd>
         </div>
     );
@@ -51,9 +68,123 @@ const Status = () => {
   const [uploadMessage, setUploadMessage] = useState('');
   const [showVehicleForm, setShowVehicleForm] = useState(false);
 
+  // State for editing personal details
+  const [isEditingDetails, setIsEditingDetails] = useState(false);
+  const [editedFirstName, setEditedFirstName] = useState(application?.firstName || '');
+  const [editedLastName, setEditedLastName] = useState(application?.lastName || '');
+  const [editedPhone, setEditedPhone] = useState(application?.phone || '');
+  const [editedArea, setEditedArea] = useState(application?.area || '');
+  const [editedBadgeNumber, setEditedBadgeNumber] = useState(application?.badgeNumber || '');
+  const [editedBadgeExpiry, setEditedBadgeExpiry] = useState(application?.badgeExpiry || '');
+  const [editedIssuingCouncil, setEditedIssuingCouncil] = useState(application?.issuingCouncil || '');
+  const [editedDrivingLicenseNumber, setEditedDrivingLicenseNumber] = useState(application?.drivingLicenseNumber || '');
+  const [editedLicenseExpiry, setEditedLicenseExpiry] = useState(application?.licenseExpiry || '');
+
   const handleLogout = async () => {
     await signOut(auth);
     navigate('/home');
+  };
+
+  const handleSaveDetailsEdit = async () => {
+    if (!currentUser || !application) return;
+
+    setIsUploading(true);
+    setUploadMessage('Saving details...');
+
+    try {
+      const updates: any = {};
+      const changedFields: string[] = [];
+      const applicantName = `${application.firstName} ${application.lastName}`;
+
+      // Check personal details
+      if (editedFirstName !== application.firstName) {
+        updates.firstName = editedFirstName;
+        changedFields.push(`First Name: "${application.firstName}" → "${editedFirstName}"`);
+      }
+      if (editedLastName !== application.lastName) {
+        updates.lastName = editedLastName;
+        changedFields.push(`Last Name: "${application.lastName}" → "${editedLastName}"`);
+      }
+      if (editedPhone !== application.phone) {
+        updates.phone = editedPhone;
+        changedFields.push(`Phone: "${application.phone}" → "${editedPhone}"`);
+      }
+      if (editedArea !== application.area) {
+        updates.area = editedArea;
+        changedFields.push(`Area: "${application.area}" → "${editedArea}"`);
+      }
+
+      // Check licensed driver fields
+      if (application.isLicensedDriver) {
+        if (editedBadgeNumber !== (application.badgeNumber || '')) {
+          updates.badgeNumber = editedBadgeNumber;
+          changedFields.push(`Badge Number: "${application.badgeNumber || 'N/A'}" → "${editedBadgeNumber}"`);
+        }
+        if (editedBadgeExpiry !== (application.badgeExpiry || '')) {
+          updates.badgeExpiry = editedBadgeExpiry;
+          changedFields.push(`Badge Expiry: "${application.badgeExpiry || 'N/A'}" → "${editedBadgeExpiry}"`);
+        }
+        if (editedIssuingCouncil !== (application.issuingCouncil || '')) {
+          updates.issuingCouncil = editedIssuingCouncil;
+          changedFields.push(`Issuing Council: "${application.issuingCouncil || 'N/A'}" → "${editedIssuingCouncil}"`);
+        }
+        if (editedDrivingLicenseNumber !== (application.drivingLicenseNumber || '')) {
+          updates.drivingLicenseNumber = editedDrivingLicenseNumber;
+          changedFields.push(`License Number: "${application.drivingLicenseNumber || 'N/A'}" → "${editedDrivingLicenseNumber}"`);
+        }
+        if (editedLicenseExpiry !== (application.licenseExpiry || '')) {
+          updates.licenseExpiry = editedLicenseExpiry;
+          changedFields.push(`License Expiry: "${application.licenseExpiry || 'N/A'}" → "${editedLicenseExpiry}"`);
+        }
+      }
+
+      if (Object.keys(updates).length > 0) {
+        await updateDoc(doc(db, 'applications', currentUser.uid), updates);
+        setUploadMessage('Details updated successfully!');
+
+        // Log the activity
+        await logActivity({
+          applicationId: currentUser.uid,
+          applicantName,
+          applicantEmail: application.email,
+          activityType: ActivityType.InformationUpdated,
+          actor: ActivityActor.Applicant,
+          actorId: currentUser.uid,
+          actorName: applicantName,
+          details: `Updated personal details: ${changedFields.join(', ')}`,
+          metadata: {
+            changedFields: changedFields,
+            fieldsCount: changedFields.length,
+          },
+        });
+
+        setIsEditingDetails(false);
+        setTimeout(() => setUploadMessage(''), 3000);
+      } else {
+        setUploadMessage('No changes to save');
+        setTimeout(() => setUploadMessage(''), 3000);
+      }
+    } catch (error) {
+      console.error('Error saving details:', error);
+      setUploadMessage('Error saving details. Please try again.');
+      setTimeout(() => setUploadMessage(''), 3000);
+    } finally {
+      setIsUploading(false);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    // Reset to current application values
+    setEditedFirstName(application?.firstName || '');
+    setEditedLastName(application?.lastName || '');
+    setEditedPhone(application?.phone || '');
+    setEditedArea(application?.area || '');
+    setEditedBadgeNumber(application?.badgeNumber || '');
+    setEditedBadgeExpiry(application?.badgeExpiry || '');
+    setEditedIssuingCouncil(application?.issuingCouncil || '');
+    setEditedDrivingLicenseNumber(application?.drivingLicenseNumber || '');
+    setEditedLicenseExpiry(application?.licenseExpiry || '');
+    setIsEditingDetails(false);
   };
 
   const handleFileUpload = async (file: File, path: string) => {
@@ -602,22 +733,112 @@ const Status = () => {
                 <div className="md:col-span-2 p-6 bg-slate-900/50 rounded-lg border border-sky-800 max-h-[70vh] overflow-y-auto">
                     <div className="flex justify-between items-center mb-6">
                         <h2 className="text-lg font-semibold text-white">Submitted Information</h2>
+                        {!isEditingDetails ? (
+                            <button
+                                onClick={() => setIsEditingDetails(true)}
+                                className="px-3 py-1.5 bg-cyan-900/50 text-cyan-300 hover:bg-cyan-800/50 rounded text-sm font-medium transition-colors flex items-center gap-1"
+                            >
+                                <svg xmlns="http://www.w3.org/2000/svg" className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+                                </svg>
+                                Edit Details
+                            </button>
+                        ) : (
+                            <div className="flex gap-2">
+                                <button
+                                    onClick={handleCancelEdit}
+                                    className="px-3 py-1.5 bg-slate-700 text-slate-300 hover:bg-slate-600 rounded text-sm font-medium transition-colors"
+                                    disabled={isUploading}
+                                >
+                                    Cancel
+                                </button>
+                                <button
+                                    onClick={handleSaveDetailsEdit}
+                                    className="px-3 py-1.5 bg-cyan-600 text-white hover:bg-cyan-700 rounded text-sm font-medium transition-colors"
+                                    disabled={isUploading}
+                                >
+                                    {isUploading ? 'Saving...' : 'Save'}
+                                </button>
+                            </div>
+                        )}
                     </div>
 
+                    {uploadMessage && isEditingDetails && (
+                        <div className={`mb-4 p-3 rounded ${uploadMessage.includes('Error') ? 'bg-red-900/20 text-red-300' : 'bg-green-900/20 text-green-300'}`}>
+                            {uploadMessage}
+                        </div>
+                    )}
+
                     <dl>
-                        <InfoRow label="First Name" value={application.firstName} />
-                        <InfoRow label="Last Name" value={application.lastName} />
+                        <InfoRow
+                            label="First Name"
+                            value={application.firstName}
+                            isEditing={isEditingDetails}
+                            editValue={editedFirstName}
+                            onEditChange={setEditedFirstName}
+                        />
+                        <InfoRow
+                            label="Last Name"
+                            value={application.lastName}
+                            isEditing={isEditingDetails}
+                            editValue={editedLastName}
+                            onEditChange={setEditedLastName}
+                        />
                         <InfoRow label="Email" value={application.email} />
-                        <InfoRow label="Mobile" value={application.phone} />
-                        <InfoRow label="Area" value={application.area} />
+                        <InfoRow
+                            label="Mobile"
+                            value={application.phone}
+                            isEditing={isEditingDetails}
+                            editValue={editedPhone}
+                            onEditChange={setEditedPhone}
+                        />
+                        <InfoRow
+                            label="Area"
+                            value={application.area}
+                            isEditing={isEditingDetails}
+                            editValue={editedArea}
+                            onEditChange={setEditedArea}
+                        />
                         <InfoRow label="Existing License" value={application.isLicensedDriver ? 'Yes' : 'No'} />
                         {application.isLicensedDriver && <>
                             <div className="h-px bg-sky-800 my-4"></div>
-                            <InfoRow label="Badge Number" value={application.badgeNumber} />
-                            <InfoRow label="Badge Expiry" value={application.badgeExpiry} />
-                            <InfoRow label="Issuing Council" value={application.issuingCouncil} />
-                            <InfoRow label="Driving License No." value={application.drivingLicenseNumber} />
-                            <InfoRow label="License Expiry" value={application.licenseExpiry} />
+                            <InfoRow
+                                label="Badge Number"
+                                value={application.badgeNumber}
+                                isEditing={isEditingDetails}
+                                editValue={editedBadgeNumber}
+                                onEditChange={setEditedBadgeNumber}
+                            />
+                            <InfoRow
+                                label="Badge Expiry"
+                                value={application.badgeExpiry}
+                                isEditing={isEditingDetails}
+                                editValue={editedBadgeExpiry}
+                                onEditChange={setEditedBadgeExpiry}
+                                type="date"
+                            />
+                            <InfoRow
+                                label="Issuing Council"
+                                value={application.issuingCouncil}
+                                isEditing={isEditingDetails}
+                                editValue={editedIssuingCouncil}
+                                onEditChange={setEditedIssuingCouncil}
+                            />
+                            <InfoRow
+                                label="Driving License No."
+                                value={application.drivingLicenseNumber}
+                                isEditing={isEditingDetails}
+                                editValue={editedDrivingLicenseNumber}
+                                onEditChange={setEditedDrivingLicenseNumber}
+                            />
+                            <InfoRow
+                                label="License Expiry"
+                                value={application.licenseExpiry}
+                                isEditing={isEditingDetails}
+                                editValue={editedLicenseExpiry}
+                                onEditChange={setEditedLicenseExpiry}
+                                type="date"
+                            />
                             <div className="h-px bg-sky-800 my-4"></div>
                             <InfoRow label="Vehicle Make" value={application.vehicleMake} />
                             <InfoRow label="Vehicle Model" value={application.vehicleModel} />
