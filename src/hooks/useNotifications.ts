@@ -21,7 +21,13 @@ export const useNotifications = () => {
    * Request notification permission and save FCM token to Firestore
    */
   const requestPermission = async () => {
+    console.log('requestPermission called');
+    console.log('Current user:', auth.currentUser);
+    console.log('Service Worker support:', 'serviceWorker' in navigator);
+
     const token = await requestNotificationPermission();
+    console.log('Token received:', token);
+
     if (token) {
       setFcmToken(token);
       setNotificationPermission('granted');
@@ -29,17 +35,22 @@ export const useNotifications = () => {
       // Save token to Firestore
       const user = auth.currentUser;
       if (user && !user.isAnonymous) {
+        console.log('Saving token to Firestore for user:', user.uid);
         try {
           await setDoc(doc(db, 'fcmTokens', user.uid), {
             token,
             updatedAt: Date.now(),
             userId: user.uid
           });
-          console.log('FCM token saved to Firestore');
+          console.log('FCM token saved to Firestore successfully!');
         } catch (error) {
           console.error('Error saving FCM token:', error);
         }
+      } else {
+        console.warn('User is anonymous or not logged in, token not saved');
       }
+    } else {
+      console.error('No token received from requestNotificationPermission');
     }
     return token;
   };

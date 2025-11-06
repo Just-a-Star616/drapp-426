@@ -51,23 +51,35 @@ const VAPID_KEY = 'BIVyChwVN7Cnzc6xWc5vomO0uSDediV2yBy3E0ad_28eWx-0t9aRNCgKIjh4u
  * @returns FCM token if permission granted, null otherwise
  */
 export const requestNotificationPermission = async (): Promise<string | null> => {
+  console.log('requestNotificationPermission - Starting...');
+  console.log('Messaging available:', !!messaging);
+  console.log('VAPID_KEY set:', !!VAPID_KEY && VAPID_KEY !== 'YOUR_VAPID_KEY_HERE');
+
   if (!messaging) {
-    console.warn('Firebase Messaging not available');
+    console.error('Firebase Messaging not available - service worker may not be registered');
     return null;
   }
 
   try {
+    console.log('Requesting permission...');
     const permission = await Notification.requestPermission();
+    console.log('Permission result:', permission);
+
     if (permission === 'granted') {
+      console.log('Getting FCM token with VAPID key...');
       const token = await getToken(messaging, { vapidKey: VAPID_KEY });
-      console.log('FCM Token:', token);
+      console.log('FCM Token received:', token);
       return token;
     } else {
-      console.log('Notification permission denied');
+      console.warn('Notification permission denied by user');
       return null;
     }
   } catch (error) {
     console.error('Error getting notification permission:', error);
+    if (error instanceof Error) {
+      console.error('Error details:', error.message);
+      console.error('Error stack:', error.stack);
+    }
     return null;
   }
 };
