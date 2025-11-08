@@ -3,16 +3,34 @@ import { useNavigate } from 'react-router-dom';
 import { signInWithPopup, signInWithEmailAndPassword } from 'firebase/auth';
 import { doc, getDoc } from 'firebase/firestore';
 import { auth, googleProvider, db } from '../services/firebase';
+import { useAppContext } from '../contexts/AppContext';
 import Button from '../components/Button';
 import TextInput from '../components/TextInput';
 
 const AdminLogin: React.FC = () => {
   const navigate = useNavigate();
+  const { branding } = useAppContext();
   const [error, setError] = useState('');
   const [isLoading, setIsLoading] = useState(false);
   const [loginMethod, setLoginMethod] = useState<'google' | 'email'>('google');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+
+  // Show loading state if branding hasn't loaded yet
+  if (!branding) {
+    return (
+      <div className="w-full max-w-md mx-auto">
+        <div className="bg-sky-900/70 p-8 rounded-2xl shadow-2xl border border-sky-800 backdrop-blur-sm">
+          <div className="text-center">
+            <div className="animate-pulse">
+              <div className="h-8 bg-slate-700 rounded w-3/4 mx-auto"></div>
+              <div className="h-4 bg-slate-700 rounded w-1/2 mx-auto mt-4"></div>
+            </div>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   const checkAdminStatus = async (user: any) => {
     // Check if user is an admin
@@ -105,7 +123,15 @@ const AdminLogin: React.FC = () => {
     <div className="w-full max-w-md mx-auto">
       <div className="bg-sky-900/70 p-8 rounded-2xl shadow-2xl border border-sky-800 backdrop-blur-sm">
         <div className="text-center">
-          <h1 className="text-3xl font-bold text-white">Admin Portal</h1>
+          {branding.logoUrl && (
+            <img
+              src={branding.logoUrl}
+              alt={branding.companyName}
+              className="h-16 w-auto mx-auto mb-4"
+            />
+          )}
+          <h1 className="text-3xl font-bold text-white">{branding.companyName}</h1>
+          <p className="mt-2 text-xl font-semibold text-cyan-300">Admin Portal</p>
           <p className="mt-2 text-slate-300">Sign in with your authorized account</p>
         </div>
 
