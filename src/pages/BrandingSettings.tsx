@@ -65,17 +65,21 @@ const BrandingSettings: React.FC = () => {
       const currentConfig = configDoc.data();
 
       // Update only the branding fields
+      const newBranding = {
+        companyName,
+        logoUrl,
+        primaryColor,
+        secondaryColor: secondaryColor || '#0c4a6e',
+        accentColor: accentColor || '#06b6d4',
+        backgroundColor: backgroundColor || '#0f172a',
+        textColor: textColor || '#ffffff',
+        tagline: tagline || '',
+      };
+
+      console.log('Saving branding colors:', newBranding);
+
       await updateDoc(configRef, {
-        branding: {
-          companyName,
-          logoUrl,
-          primaryColor,
-          secondaryColor: secondaryColor || '#0c4a6e',
-          accentColor: accentColor || '#06b6d4',
-          backgroundColor: backgroundColor || '#0f172a',
-          textColor: textColor || '#ffffff',
-          tagline: tagline || '',
-        },
+        branding: newBranding,
         // Preserve other fields like statusSteps
         statusSteps: currentConfig.statusSteps || [],
       });
@@ -84,7 +88,9 @@ const BrandingSettings: React.FC = () => {
       setMessageType('success');
 
       // Reload the page after a short delay to show the new branding
+      // Use hard reload to clear all caches
       setTimeout(() => {
+        window.location.href = window.location.href.split('#')[0] + '#/admin/branding?t=' + Date.now();
         window.location.reload();
       }, 2000);
     } catch (error) {

@@ -31,11 +31,29 @@ const App: React.FC = () => {
   useEffect(() => {
     if (branding) {
       const root = document.documentElement;
-      root.style.setProperty('--brand-primary', branding.primaryColor || '#0ea5e9');
-      root.style.setProperty('--brand-secondary', branding.secondaryColor || '#0c4a6e');
-      root.style.setProperty('--brand-accent', branding.accentColor || '#06b6d4');
-      root.style.setProperty('--brand-background', branding.backgroundColor || '#0f172a');
-      root.style.setProperty('--brand-text', branding.textColor || '#ffffff');
+      const primary = branding.primaryColor || '#0ea5e9';
+      const secondary = branding.secondaryColor || '#0c4a6e';
+      const accent = branding.accentColor || '#06b6d4';
+      const background = branding.backgroundColor || '#0f172a';
+      const text = branding.textColor || '#ffffff';
+
+      console.log('Applying branding colors:', {
+        primary,
+        secondary,
+        accent,
+        background,
+        text
+      });
+
+      root.style.setProperty('--brand-primary', primary);
+      root.style.setProperty('--brand-secondary', secondary);
+      root.style.setProperty('--brand-accent', accent);
+      root.style.setProperty('--brand-background', background);
+      root.style.setProperty('--brand-text', text);
+
+      // Also update the body background immediately
+      document.body.style.backgroundColor = background;
+      document.body.style.color = text;
     }
   }, [branding]);
 
