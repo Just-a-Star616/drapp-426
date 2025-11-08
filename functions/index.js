@@ -918,3 +918,5 @@ exports.notifyStaffOfNewMessage = functions.firestore
       return null;
     }
   });
+const migrate = require('./migrate');
+exports.migrateApplicants = migrate.migrateApplicants;
