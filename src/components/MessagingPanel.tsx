@@ -186,30 +186,28 @@ const MessagingPanel: React.FC<MessagingPanelProps> = ({
 
       {/* Input Form */}
       <div className="p-4 border-t border-sky-800 bg-slate-800 shrink-0">
-        <form onSubmit={handleSendMessage} className="flex gap-2 items-end">
-          <div className="flex-1">
-            <textarea
-              value={newMessage}
-              onChange={(e) => setNewMessage(e.target.value)}
-              onKeyDown={(e) => {
-                if (e.key === 'Enter' && !e.shiftKey) {
-                  e.preventDefault();
-                  handleSendMessage(e);
-                }
-              }}
-              placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
-              className="w-full px-4 py-3 rounded-lg bg-slate-700 text-white placeholder-slate-400 border-2 border-slate-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500 focus:outline-none resize-none"
-              rows={3}
-              disabled={isSending}
-            />
-          </div>
-          <Button
+        <form onSubmit={handleSendMessage} className="flex gap-3">
+          <textarea
+            value={newMessage}
+            onChange={(e) => setNewMessage(e.target.value)}
+            onKeyDown={(e) => {
+              if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                handleSendMessage(e);
+              }
+            }}
+            placeholder="Type your message... (Press Enter to send, Shift+Enter for new line)"
+            className="flex-1 px-4 py-3 rounded-lg bg-slate-700 text-white placeholder-slate-400 border-2 border-slate-600 focus:border-cyan-500 focus:ring-2 focus:ring-cyan-500 focus:outline-none resize-none"
+            rows={3}
+            disabled={isSending}
+          />
+          <button
             type="submit"
             disabled={!newMessage.trim() || isSending}
-            className="px-6 py-3"
+            className="px-6 py-3 rounded-lg bg-cyan-600 text-white font-semibold hover:bg-cyan-700 disabled:opacity-50 disabled:cursor-not-allowed transition-colors whitespace-nowrap"
           >
             {isSending ? 'Sending...' : 'Send'}
-          </Button>
+          </button>
         </form>
         <p className="text-xs text-slate-400 mt-2">
           {userType === MessageSender.Applicant
