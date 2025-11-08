@@ -778,3 +778,143 @@ exports.notifyStaffOfActivity = functions.firestore
       return null;
     }
   });
+
+/**
+ * Cloud Function that triggers when a new message is created
+ * Sends notification to Google Chat when applicants send messages to staff
+ */
+exports.notifyStaffOfNewMessage = functions.firestore
+  .document('messages/{messageId}')
+  .onCreate(async (snapshot, context) => {
+    const messageData = snapshot.data();
+    const messageId = context.params.messageId;
+
+    // Only notify staff when applicants send messages (not when staff send messages)
+    if (messageData.senderType !== 'Applicant') {
+      console.log('Message from staff, skipping notification');
+      return null;
+    }
+
+    // Get the Google Chat webhook URL from environment config
+    const webhookUrl = functions.config().googlechat?.webhook;
+
+    if (!webhookUrl) {
+      console.error('Google Chat webhook URL not configured');
+      return null;
+    }
+
+    // Get applicant details from the application
+    let applicantDetails = {
+      name: messageData.senderName,
+      email: 'Unknown'
+    };
+
+    try {
+      const applicationDoc = await admin.firestore()
+        .collection('applications')
+        .doc(messageData.applicationId)
+        .get();
+
+      if (applicationDoc.exists) {
+        const appData = applicationDoc.data();
+        applicantDetails = {
+          name: `${appData.firstName} ${appData.lastName}`,
+          email: appData.email
+        };
+      }
+    } catch (error) {
+      console.error('Error fetching application details:', error);
+    }
+
+    // Create the notification message
+    const message = {
+      text: `💬 New Message from Applicant: ${applicantDetails.name}`,
+      cardsV2: [{
+        cardId: "message-" + messageId,
+        card: {
+          header: {
+            title: "💬 New Applicant Message",
+            subtitle: applicantDetails.name,
+            imageUrl: "https://cdn-icons-png.flaticon.com/512/1370/1370907.png",
+            imageType: "CIRCLE"
+          },
+          sections: [
+            {
+              widgets: [
+                {
+                  decoratedText: {
+                    topLabel: "From",
+                    text: applicantDetails.name
+                  }
+                },
+                {
+                  decoratedText: {
+                    topLabel: "Email",
+                    text: applicantDetails.email
+                  }
+                },
+                {
+                  decoratedText: {
+                    topLabel: "Message",
+                    text: messageData.message.length > 200
+                      ? messageData.message.substring(0, 200) + '...'
+                      : messageData.message,
+                    wrapText: true
+                  }
+                },
+                {
+                  decoratedText: {
+                    topLabel: "Time",
+                    text: new Date(messageData.timestamp).toLocaleString('en-GB', {
+                      dateStyle: 'medium',
+                      timeStyle: 'short'
+                    })
+                  }
+                }
+              ]
+            },
+            {
+              widgets: [
+                {
+                  buttonList: {
+                    buttons: [
+                      {
+                        text: "View in Admin Dashboard",
+                        onClick: {
+                          openLink: {
+                            url: `https://drapp-426.vercel.app/#/admin/dashboard`
+                          }
+                        }
+                      }
+                    ]
+                  }
+                }
+              ]
+            }
+          ]
+        }
+      }]
+    };
+
+    // Send the notification to Google Chat
+    try {
+      const response = await fetch(webhookUrl, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json; charset=UTF-8'
+        },
+        body: JSON.stringify(message)
+      });
+
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log('Successfully sent message notification to Google Chat');
+      return null;
+    } catch (error) {
+      console.error('Error sending message notification to Google Chat:', error);
+      // Don't throw - we don't want message sending to fail if webhook fails
+      return null;
+    }
+  });

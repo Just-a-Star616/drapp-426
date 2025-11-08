@@ -299,6 +299,14 @@ Located in `functions/index.js`:
 - Includes activity details, metadata, and link to view application
 - Uses same `googlechat.webhook` environment config as `notifyNewApplication`
 
+**notifyStaffOfNewMessage**: Firestore trigger that sends Google Chat notifications when applicants send messages
+- Triggers on new message creation in `messages` collection
+- Only sends notifications for messages from applicants (not staff messages)
+- Fetches applicant details from applications collection
+- Shows message preview (first 200 characters)
+- Includes link to admin dashboard
+- Uses same `googlechat.webhook` environment config
+
 ### Service Worker
 - Implementation in `service-worker.js` at project root
 - Currently disabled in `src/App.tsx:119-131` (commented out)
