@@ -134,7 +134,7 @@ const SendNotificationModal: React.FC<SendNotificationModalProps> = ({
               notificationTitle: title,
               notificationMessage: message,
               sendMode,
-              scheduledFor: scheduledFor || undefined,
+              ...(scheduledFor && { scheduledFor }), // Only include if scheduledFor has a value
             },
           });
         }
